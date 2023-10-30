@@ -14,7 +14,7 @@ namespace AzuAutoStore.Patches;
 [HarmonyPatch(typeof(Container), nameof(Container.Awake))]
 internal static class ContainerAwakePatch
 {
-    private static Dictionary<Container, Coroutine> containerCoroutines = new Dictionary<Container, Coroutine>();
+    internal static Dictionary<Container, Coroutine> containerCoroutines = new Dictionary<Container, Coroutine>();
 
     private static void Postfix(Container __instance)
     {
@@ -111,6 +111,19 @@ internal static class ContainerOnDestroyedPatch
             __instance.m_nview.GetZDO().GetLong("creator".GetStableHashCode()) == 0L)
             return;
         Boxes.RemoveContainer(__instance);
+
+        try
+        {
+            if (ContainerAwakePatch.containerCoroutines.ContainsKey(__instance))
+            {
+                ContainerAwakePatch.containerCoroutines.Remove(__instance);
+                __instance.StopCoroutine(ContainerAwakePatch.containerCoroutines[__instance]);
+            }
+        }
+        catch (Exception exception) 
+        {
+            Functions.LogError($"Error in ContainerOnDestroyedPatch Couldn't remove container coroutine: {exception}");
+        }
     }
 }
 
