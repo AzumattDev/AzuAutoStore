@@ -235,9 +235,7 @@ public class Functions
     {
         if (!string.IsNullOrWhiteSpace(AzuAutoStorePlugin.PingVfxString.Value))
         {
-            GameObject gameObject = Object.Instantiate(
-                ZNetScene.instance.GetPrefab(AzuAutoStorePlugin.PingVfxString.Value), container.transform.position,
-                Quaternion.identity);
+            GameObject gameObject = Object.Instantiate(ZNetScene.instance.GetPrefab(AzuAutoStorePlugin.PingVfxString.Value), container.transform.position, Quaternion.identity);
         }
 
         if (AzuAutoStorePlugin.HighlightContainers.Value == AzuAutoStorePlugin.Toggle.On)

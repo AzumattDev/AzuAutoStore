@@ -181,11 +181,11 @@ namespace AzuAutoStore
             if (_pauseShortcut.Value.IsDown() && Player.m_localPlayer.TakeInput())
             {
                 Boxes.StoringPaused = !Boxes.StoringPaused;
-                //foreach (Container container in Boxes.Containers)
-                //{
-                //    if (!container.m_nview.IsValid()) continue;
-                //    Boxes.RequestPause(true, container);
-                //}
+                foreach (Container container in Boxes.Containers)
+                {
+                    if (!container.m_nview.IsValid()) continue;
+                    Boxes.RequestPause(true, container);
+                }
             }
         }
 

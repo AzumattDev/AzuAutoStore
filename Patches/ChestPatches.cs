@@ -15,6 +15,8 @@ namespace AzuAutoStore.Patches;
 internal static class ContainerAwakePatch
 {
     internal static Dictionary<Container, Coroutine> containerCoroutines = new Dictionary<Container, Coroutine>();
+    internal static int pausedSeconds = 0;
+    internal static int lastCount = 0;
 
     private static void Postfix(Container __instance)
     {
@@ -26,8 +28,7 @@ internal static class ContainerAwakePatch
         }
 
         if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null ||
-            !__instance.m_nview.IsValid() ||
-            __instance.m_nview.GetZDO().GetLong("creator".GetStableHashCode()) == 0L)
+            !__instance.m_nview.IsValid())
             return;
 
         try
@@ -48,19 +49,24 @@ internal static class ContainerAwakePatch
         {
         }
 
-        // Start the new coroutine and store its reference
         Coroutine newCoroutine = __instance.StartCoroutine(PeriodicCheck(__instance));
         containerCoroutines[__instance] = newCoroutine;
     }
 
-    private static IEnumerator PeriodicCheck(Container containerInstance)
+    private static IEnumerator PeriodicCheck(Container containerInstance, bool execNext = false)
     {
         float regularSearchInterval = 10.0f;
-        float quickSearchInterval = 1.0f;
+        float quickSearchInterval = 0.0f;
         float currentInterval = regularSearchInterval;
 
         while (true)
         {
+            if (execNext)
+            {
+                execNext = false;
+                currentInterval = quickSearchInterval;
+            }
+
             yield return new WaitForSeconds(currentInterval);
 
             foreach (Collider? collider in Physics.OverlapSphere(containerInstance.transform.position, Functions.GetContainerRange(containerInstance), LayerMask.GetMask("item")))
@@ -95,7 +101,7 @@ internal static class ContainerAwakePatch
         if (containerCoroutines.TryGetValue(containerInstance, out var existingCoroutine))
         {
             containerInstance.StopCoroutine(existingCoroutine);
-            Coroutine newCoroutine = containerInstance.StartCoroutine(PeriodicCheck(containerInstance));
+            Coroutine newCoroutine = containerInstance.StartCoroutine(PeriodicCheck(containerInstance, true));
             containerCoroutines[containerInstance] = newCoroutine;
         }
     }
@@ -120,7 +126,7 @@ internal static class ContainerOnDestroyedPatch
                 __instance.StopCoroutine(ContainerAwakePatch.containerCoroutines[__instance]);
             }
         }
-        catch (Exception exception) 
+        catch (Exception exception)
         {
             Functions.LogError($"Error in ContainerOnDestroyedPatch Couldn't remove container coroutine: {exception}");
         }
@@ -130,47 +136,28 @@ internal static class ContainerOnDestroyedPatch
 [HarmonyPatch(typeof(Container), nameof(Container.Load))]
 static class ContainerLoadPatch
 {
-    static int pausedSeconds = 0;
-    private static int lastCount = 0;
-
     static void Postfix(Container __instance)
     {
-        if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null ||
-            __instance.m_nview.GetZDO().GetLong("creator".GetStableHashCode()) == 0L)
+        if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null)
             return;
-        if (Player.m_localPlayer == null) return;
-        if (Player.m_localPlayer.m_isLoading || Player.m_localPlayer.m_teleporting) return;
-        // Only add containers that the player should have access to
-        if (WardIsLovePlugin.IsLoaded() && WardIsLovePlugin.WardEnabled()!.Value &&
-            WardMonoscript.CheckAccess(__instance.transform.position, flash: false, wardCheck: true))
-        {
-            Boxes.AddContainer(__instance);
-        }
-        else
-        {
-            if (PrivateArea.CheckAccess(__instance.transform.position, flash: false, wardCheck: true))
-                Boxes.AddContainer(__instance);
-        }
-
-        Vector3 position = __instance.transform.position + Vector3.up;
-        //if (!__instance.m_nview.GetZDO().GetBool("storingPaused".GetStableHashCode()))
-        if (Boxes.StoringPaused)
+        if (__instance.m_nview.GetZDO().GetBool("storingPaused".GetStableHashCode()))
+            //if (Boxes.StoringPaused)
         {
             AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Storing is paused for {__instance.name}");
-            ++pausedSeconds; // Can just increment this every time this is called since it is called every second
-            AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Paused for {pausedSeconds} seconds");
-            if (pausedSeconds < AzuAutoStorePlugin.SecondsToWaitBeforeStoring.Value) return; //|| !__instance.m_nview.IsOwner()) return;
-            //__instance.m_nview.GetZDO().Set("storingPaused".GetStableHashCode(), false);
+            ++ContainerAwakePatch.pausedSeconds; // Can just increment this every time this is called since it is called every second
+            AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Paused for {ContainerAwakePatch.pausedSeconds} seconds");
+            if (ContainerAwakePatch.pausedSeconds < AzuAutoStorePlugin.SecondsToWaitBeforeStoring.Value) return; //|| !__instance.m_nview.IsOwner()) return;
+            __instance.m_nview.GetZDO().Set("storingPaused".GetStableHashCode(), false);
             Boxes.StoringPaused = false;
-            pausedSeconds = 0;
+            ContainerAwakePatch.pausedSeconds = 0;
         }
         else
         {
-            if (ItemDrop.s_instances.Count != lastCount)
+            if (ItemDrop.s_instances.Count != ContainerAwakePatch.lastCount)
             {
-                lastCount = ItemDrop.s_instances.Count;
+                ContainerAwakePatch.lastCount = ItemDrop.s_instances.Count;
                 ContainerAwakePatch.ItemDroppedNearby(__instance);
-                AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"ItemDrop count is {lastCount}");
+                AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"ItemDrop count is {ContainerAwakePatch.lastCount}");
             }
         }
     }

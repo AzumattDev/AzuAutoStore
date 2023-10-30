@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using BepInEx;
+using BepInEx.Bootstrap;
 
 namespace AzuAutoStore.Patches.Favoriting
 {
@@ -32,7 +33,11 @@ namespace AzuAutoStore.Patches.Favoriting
         /// </summary>
         public UserConfig(long uid)
         {
-            _configPath = Path.Combine(Paths.ConfigPath, $"{AzuAutoStorePlugin.ModName}_player_{uid}.dat");
+            _configPath = Chainloader.PluginInfos.TryGetValue("goldenrevolver.quick_stack_store", out var qsstr) 
+                ? Path.Combine(Paths.ConfigPath, qsstr != null 
+                    ? $"QuickStackStore_player_{uid}.dat" 
+                    : $"{AzuAutoStorePlugin.ModName}_player_{uid}.dat") 
+                : Path.Combine(Paths.ConfigPath, $"{AzuAutoStorePlugin.ModName}_player_{uid}.dat");
             Load();
         }
 
