@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AzuAutoStore.Util;
@@ -12,6 +14,8 @@ namespace AzuAutoStore.Patches;
 [HarmonyPatch(typeof(Container), nameof(Container.Awake))]
 internal static class ContainerAwakePatch
 {
+    private static Dictionary<Container, Coroutine> containerCoroutines = new Dictionary<Container, Coroutine>();
+
     private static void Postfix(Container __instance)
     {
         if (__instance.m_nview.GetZDO() != null)
@@ -20,10 +24,10 @@ internal static class ContainerAwakePatch
             __instance.m_nview.Register("Autostore Ownership", uid => Boxes.RPC_Ownership(__instance, uid));
             __instance.m_nview.Register<bool>("Autostore OpenResponse", (_, response) => Boxes.RPC_OpenResponse(__instance, response));
         }
-        
+
         if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null ||
-             !__instance.m_nview.IsValid() ||
-             __instance.m_nview.GetZDO().GetLong("creator".GetStableHashCode()) == 0L)
+            !__instance.m_nview.IsValid() ||
+            __instance.m_nview.GetZDO().GetLong("creator".GetStableHashCode()) == 0L)
             return;
 
         try
@@ -42,6 +46,57 @@ internal static class ContainerAwakePatch
         }
         catch
         {
+        }
+
+        // Start the new coroutine and store its reference
+        Coroutine newCoroutine = __instance.StartCoroutine(PeriodicCheck(__instance));
+        containerCoroutines[__instance] = newCoroutine;
+    }
+
+    private static IEnumerator PeriodicCheck(Container containerInstance)
+    {
+        float regularSearchInterval = 10.0f;
+        float quickSearchInterval = 1.0f;
+        float currentInterval = regularSearchInterval;
+
+        while (true)
+        {
+            yield return new WaitForSeconds(currentInterval);
+
+            foreach (Collider? collider in Physics.OverlapSphere(containerInstance.transform.position, Functions.GetContainerRange(containerInstance), LayerMask.GetMask("item")))
+                if (collider?.attachedRigidbody)
+                {
+                    ItemDrop? item = collider.attachedRigidbody.GetComponent<ItemDrop>();
+                    if (!item) continue;
+                    Functions.LogDebug($"Nearby item name: {item.m_itemData.m_dropPrefab.name}");
+
+                    if (item?.GetComponent<ZNetView>()?.IsValid() != true ||
+                        !item.GetComponent<ZNetView>().IsOwner())
+                        continue;
+                    if (!Functions.TryStore(containerInstance, ref item.m_itemData)) continue;
+                    item.Save();
+                    if (item.m_itemData.m_stack <= 0)
+                    {
+                        if (item.GetComponent<ZNetView>() == null)
+                            Object.DestroyImmediate(item.gameObject);
+                        else
+                            ZNetScene.instance.Destroy(item.gameObject);
+                    }
+                }
+
+
+            currentInterval = regularSearchInterval;
+        }
+    }
+
+    // This is a static method you could call to change the interval to 1 second
+    public static void ItemDroppedNearby(Container containerInstance)
+    {
+        if (containerCoroutines.TryGetValue(containerInstance, out var existingCoroutine))
+        {
+            containerInstance.StopCoroutine(existingCoroutine);
+            Coroutine newCoroutine = containerInstance.StartCoroutine(PeriodicCheck(containerInstance));
+            containerCoroutines[containerInstance] = newCoroutine;
         }
     }
 }
@@ -63,6 +118,7 @@ internal static class ContainerOnDestroyedPatch
 static class ContainerLoadPatch
 {
     static int pausedSeconds = 0;
+    private static int lastCount = 0;
 
     static void Postfix(Container __instance)
     {
@@ -97,26 +153,12 @@ static class ContainerLoadPatch
         }
         else
         {
-            foreach (Collider? collider in Physics.OverlapSphere(position, Functions.GetContainerRange(__instance), LayerMask.GetMask("item")))
-                if (collider?.attachedRigidbody)
-                {
-                    ItemDrop? item = collider.attachedRigidbody.GetComponent<ItemDrop>();
-                    if (!item) continue;
-                    Functions.LogDebug($"Nearby item name: {item.m_itemData.m_dropPrefab.name}");
-
-                    if (item?.GetComponent<ZNetView>()?.IsValid() != true ||
-                        !item.GetComponent<ZNetView>().IsOwner())
-                        continue;
-                    if (!Functions.TryStore(__instance, ref item.m_itemData)) continue;
-                    item.Save();
-                    if (item.m_itemData.m_stack <= 0)
-                    {
-                        if (item.GetComponent<ZNetView>() == null)
-                            Object.DestroyImmediate(item.gameObject);
-                        else
-                            ZNetScene.instance.Destroy(item.gameObject);
-                    }
-                }
+            if (ItemDrop.s_instances.Count != lastCount)
+            {
+                lastCount = ItemDrop.s_instances.Count;
+                ContainerAwakePatch.ItemDroppedNearby(__instance);
+                AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"ItemDrop count is {lastCount}");
+            }
         }
     }
 }
