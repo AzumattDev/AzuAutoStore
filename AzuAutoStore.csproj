@@ -125,6 +125,7 @@
         <Compile Include="Patches\Favoriting\InventoryGui.cs" />
         <Compile Include="Patches\Favoriting\TooltipRenderer.cs" />
         <Compile Include="Patches\Favoriting\UserConfig.cs" />
+        <Compile Include="Patches\ItemDropPatches.cs" />
         <Compile Include="Patches\PredefinedGroups.cs" />
         <Compile Include="Plugin.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />

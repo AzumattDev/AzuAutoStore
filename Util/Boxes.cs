@@ -69,21 +69,6 @@ public class Boxes
         return nearbyContainers;
     }
 
-    internal static void RequestPause(bool pause, Container container)
-    {
-        if (!container.m_nview.IsValid())
-            return;
-        container.m_nview.InvokeRPC("RequestPause", pause, container);
-    }
-
-    internal static void RPC_RequestPause(long sender, bool pause, Container container)
-    {
-        if (container.m_nview.IsOwner())
-        {
-            container.m_nview.GetZDO().Set("storingPaused".GetStableHashCode(), pause);
-        }
-    }
-
 
     public static void AddContainerIfNotExists(string containerName)
     {
@@ -267,6 +252,16 @@ public class Boxes
         if (--Functions.inProgressStores == 0)
         {
             Functions.StoreSuccess(Functions.inProgressTotal);
+        }
+    }
+
+    internal static void RPC_RequestPause(long sender, bool pause, Container container)
+    {
+        if (!container.m_nview.IsValid())
+            return;
+        if (container.m_nview.IsOwner())
+        {
+            container.m_nview.GetZDO().Set("storingPaused".GetStableHashCode(), pause);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace AzuAutoStore
     public class AzuAutoStorePlugin : BaseUnityPlugin
     {
         internal const string ModName = "AzuAutoStore";
-        internal const string ModVersion = "2.0.3";
+        internal const string ModVersion = "2.1.0";
         internal const string Author = "Azumatt";
         internal const string ModGUID = $"{Author}.{ModName}";
         private static readonly string ConfigFileName = ModGUID + ".cfg";
@@ -184,7 +184,7 @@ namespace AzuAutoStore
                 foreach (Container container in Boxes.Containers)
                 {
                     if (!container.m_nview.IsValid()) continue;
-                    Boxes.RequestPause(true, container);
+                    container.m_nview.InvokeRPC("RequestPause", Boxes.StoringPaused);
                 }
             }
         }

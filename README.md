@@ -18,6 +18,13 @@ ignored (`if turned on in the configuration!`).
 - Restrict specific items from being stored into containers by defining rules in the configuration file in
   the `BepInEx/config` folder called `Azumatt.AzuAzuStore.yml`
 - Toggle the storing of items via a keyboard shortcut for a configurable amount of seconds
+- `Favoriting from GoldenRevolver` By holding the Favoriting Key (default: Alt) or by using a new button, you can left
+  click on an item to favorite it,
+  or
+  right click to favorite the slot it is in. This prevents the quick storing from player inventory from having the mod
+  affect that item. No accidental
+  storing something you didn't want. The favoriting state is shown with a custom colored border around the slot. If
+  GoldenRevolver's mod is present, it will read his favoriting file and use that instead.
 
 ## FAQ
 

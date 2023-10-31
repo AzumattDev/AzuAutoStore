@@ -14,21 +14,21 @@ namespace AzuAutoStore.Patches;
 [HarmonyPatch(typeof(Container), nameof(Container.Awake))]
 internal static class ContainerAwakePatch
 {
-    internal static Dictionary<Container, Coroutine> containerCoroutines = new Dictionary<Container, Coroutine>();
+    internal static Dictionary<Container, Coroutine> containerCoroutines = new();
     internal static int pausedSeconds = 0;
     internal static int lastCount = 0;
+    internal static readonly int storingPausedHash = "storingPaused".GetStableHashCode();
 
     private static void Postfix(Container __instance)
     {
         if (__instance.m_nview.GetZDO() != null)
         {
-            __instance.m_nview.Register<bool, Container>("RequestPause", new Action<long, bool, Container>(Boxes.RPC_RequestPause));
+            __instance.m_nview.Register<bool>("RequestPause", (sender, pause) => Boxes.RPC_RequestPause(sender, pause, __instance));
             __instance.m_nview.Register("Autostore Ownership", uid => Boxes.RPC_Ownership(__instance, uid));
             __instance.m_nview.Register<bool>("Autostore OpenResponse", (_, response) => Boxes.RPC_OpenResponse(__instance, response));
         }
 
-        if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null ||
-            !__instance.m_nview.IsValid())
+        if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null || !__instance.m_nview.IsValid())
             return;
 
         try
@@ -61,41 +61,59 @@ internal static class ContainerAwakePatch
 
         while (true)
         {
-            if (execNext)
+            bool storingPaused = containerInstance.m_nview.GetZDO().GetBool(storingPausedHash);
+
+            if (storingPaused)
             {
-                execNext = false;
-                currentInterval = quickSearchInterval;
-            }
+                pausedSeconds++;
+                AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Paused for {pausedSeconds} seconds");
 
-            yield return new WaitForSeconds(currentInterval);
-
-            foreach (Collider? collider in Physics.OverlapSphere(containerInstance.transform.position, Functions.GetContainerRange(containerInstance), LayerMask.GetMask("item")))
-                if (collider?.attachedRigidbody)
+                if (pausedSeconds >= AzuAutoStorePlugin.SecondsToWaitBeforeStoring.Value)
                 {
-                    ItemDrop? item = collider.attachedRigidbody.GetComponent<ItemDrop>();
-                    if (!item) continue;
-                    Functions.LogDebug($"Nearby item name: {item.m_itemData.m_dropPrefab.name}");
-
-                    if (item?.GetComponent<ZNetView>()?.IsValid() != true ||
-                        !item.GetComponent<ZNetView>().IsOwner())
-                        continue;
-                    if (!Functions.TryStore(containerInstance, ref item.m_itemData)) continue;
-                    item.Save();
-                    if (item.m_itemData.m_stack <= 0)
-                    {
-                        if (item.GetComponent<ZNetView>() == null)
-                            Object.DestroyImmediate(item.gameObject);
-                        else
-                            ZNetScene.instance.Destroy(item.gameObject);
-                    }
+                    containerInstance.m_nview.GetZDO().Set(storingPausedHash, false);
+                    AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Paused for {pausedSeconds} seconds, resuming");
+                    pausedSeconds = 0;
                 }
 
+                yield return new WaitForSeconds(1);
+            }
+            else
+            {
+                if (execNext)
+                {
+                    execNext = false;
+                    currentInterval = quickSearchInterval;
+                }
 
-            currentInterval = regularSearchInterval;
+                yield return new WaitForSeconds(currentInterval);
+
+                foreach (Collider? collider in Physics.OverlapSphere(containerInstance.transform.position, Functions.GetContainerRange(containerInstance), LayerMask.GetMask("item")))
+                    if (collider?.attachedRigidbody)
+                    {
+                        ItemDrop? item = collider.attachedRigidbody.GetComponent<ItemDrop>();
+                        if (!item) continue;
+                        Functions.LogDebug($"Nearby item name: {item.m_itemData.m_dropPrefab.name}");
+
+                        if (item?.GetComponent<ZNetView>()?.IsValid() != true ||
+                            !item.GetComponent<ZNetView>().IsOwner())
+                            continue;
+                        if (!Functions.TryStore(containerInstance, ref item.m_itemData)) continue;
+                        item.Save();
+                        if (item.m_itemData.m_stack <= 0)
+                        {
+                            if (item.GetComponent<ZNetView>() == null)
+                                Object.DestroyImmediate(item.gameObject);
+                            else
+                                ZNetScene.instance.Destroy(item.gameObject);
+                        }
+                    }
+
+
+                currentInterval = regularSearchInterval;
+            }
         }
     }
 
-    // This is a static method you could call to change the interval to 1 second
     public static void ItemDroppedNearby(Container containerInstance)
     {
         if (containerCoroutines.TryGetValue(containerInstance, out var existingCoroutine))
@@ -129,36 +147,6 @@ internal static class ContainerOnDestroyedPatch
         catch (Exception exception)
         {
             Functions.LogError($"Error in ContainerOnDestroyedPatch Couldn't remove container coroutine: {exception}");
-        }
-    }
-}
-
-[HarmonyPatch(typeof(Container), nameof(Container.Load))]
-static class ContainerLoadPatch
-{
-    static void Postfix(Container __instance)
-    {
-        if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null)
-            return;
-        if (__instance.m_nview.GetZDO().GetBool("storingPaused".GetStableHashCode()))
-            //if (Boxes.StoringPaused)
-        {
-            AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Storing is paused for {__instance.name}");
-            ++ContainerAwakePatch.pausedSeconds; // Can just increment this every time this is called since it is called every second
-            AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Paused for {ContainerAwakePatch.pausedSeconds} seconds");
-            if (ContainerAwakePatch.pausedSeconds < AzuAutoStorePlugin.SecondsToWaitBeforeStoring.Value) return; //|| !__instance.m_nview.IsOwner()) return;
-            __instance.m_nview.GetZDO().Set("storingPaused".GetStableHashCode(), false);
-            Boxes.StoringPaused = false;
-            ContainerAwakePatch.pausedSeconds = 0;
-        }
-        else
-        {
-            if (ItemDrop.s_instances.Count != ContainerAwakePatch.lastCount)
-            {
-                ContainerAwakePatch.lastCount = ItemDrop.s_instances.Count;
-                ContainerAwakePatch.ItemDroppedNearby(__instance);
-                AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"ItemDrop count is {ContainerAwakePatch.lastCount}");
-            }
         }
     }
 }
