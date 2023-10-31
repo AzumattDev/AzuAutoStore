@@ -116,10 +116,15 @@ internal static class ContainerAwakePatch
 
     public static void ItemDroppedNearby(Container containerInstance)
     {
-        if (containerCoroutines.TryGetValue(containerInstance, out var existingCoroutine))
+        if (containerCoroutines == null) return;
+        if (!containerInstance || !containerCoroutines.TryGetValue(containerInstance, out Coroutine? existingCoroutine)) return;
+        if (existingCoroutine == null) return;
+
+        containerInstance.StopCoroutine(existingCoroutine);
+
+        Coroutine newCoroutine = containerInstance.StartCoroutine(PeriodicCheck(containerInstance, true));
+        if (newCoroutine != null)
         {
-            containerInstance.StopCoroutine(existingCoroutine);
-            Coroutine newCoroutine = containerInstance.StartCoroutine(PeriodicCheck(containerInstance, true));
             containerCoroutines[containerInstance] = newCoroutine;
         }
     }
