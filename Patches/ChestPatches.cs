@@ -145,8 +145,9 @@ internal static class ContainerOnDestroyedPatch
         {
             if (__instance && ContainerAwakePatch.containerCoroutines.ContainsKey(__instance))
             {
-                ContainerAwakePatch.containerCoroutines.Remove(__instance);
                 __instance.StopCoroutine(ContainerAwakePatch.containerCoroutines[__instance]);
+                ContainerAwakePatch.containerCoroutines.Remove(__instance);
+                
             }
         }
         catch (Exception exception)
