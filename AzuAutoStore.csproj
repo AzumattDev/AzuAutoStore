@@ -118,6 +118,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Patches\ChestPatches.cs"/>
+        <Compile Include="Patches\Commands.cs" />
         <Compile Include="Patches\Favoriting\BorderRenderer.cs" />
         <Compile Include="Patches\Favoriting\ButtonRenderer.cs" />
         <Compile Include="Patches\Favoriting\FavoritingMode.cs" />
