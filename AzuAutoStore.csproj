@@ -118,6 +118,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Patches\ChestPatches.cs"/>
+        <Compile Include="Patches\Commands.cs" />
         <Compile Include="Patches\Favoriting\BorderRenderer.cs" />
         <Compile Include="Patches\Favoriting\ButtonRenderer.cs" />
         <Compile Include="Patches\Favoriting\FavoritingMode.cs" />
@@ -125,6 +126,7 @@
         <Compile Include="Patches\Favoriting\InventoryGui.cs" />
         <Compile Include="Patches\Favoriting\TooltipRenderer.cs" />
         <Compile Include="Patches\Favoriting\UserConfig.cs" />
+        <Compile Include="Patches\ItemDropPatches.cs" />
         <Compile Include="Patches\PredefinedGroups.cs" />
         <Compile Include="Plugin.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />

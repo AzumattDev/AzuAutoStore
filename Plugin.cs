@@ -24,7 +24,7 @@ namespace AzuAutoStore
     public class AzuAutoStorePlugin : BaseUnityPlugin
     {
         internal const string ModName = "AzuAutoStore";
-        internal const string ModVersion = "2.0.3";
+        internal const string ModVersion = "2.1.1";
         internal const string Author = "Azumatt";
         internal const string ModGUID = $"{Author}.{ModName}";
         private static readonly string ConfigFileName = ModGUID + ".cfg";
@@ -181,11 +181,11 @@ namespace AzuAutoStore
             if (_pauseShortcut.Value.IsDown() && Player.m_localPlayer.TakeInput())
             {
                 Boxes.StoringPaused = !Boxes.StoringPaused;
-                //foreach (Container container in Boxes.Containers)
-                //{
-                //    if (!container.m_nview.IsValid()) continue;
-                //    Boxes.RequestPause(true, container);
-                //}
+                foreach (Container container in Boxes.Containers)
+                {
+                    if (!container.m_nview.IsValid()) continue;
+                    container.m_nview.InvokeRPC("RequestPause", Boxes.StoringPaused);
+                }
             }
         }
 

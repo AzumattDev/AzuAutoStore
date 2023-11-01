@@ -21,7 +21,6 @@ namespace AzuAutoStore
             AzuAutoStorePlugin.AzuAutoStoreLogger.LogInfo("Invoking version check");
             ZPackage zpackage = new();
             zpackage.Write(AzuAutoStorePlugin.ModVersion);
-            zpackage.Write(RpcHandlers.ComputeHashForMod().Replace("-", ""));
             peer.m_rpc.Invoke($"{AzuAutoStorePlugin.ModName}_VersionCheck", zpackage);
         }
     }
@@ -79,13 +78,10 @@ namespace AzuAutoStore
         public static void RPC_AzuAutoStore_Version(ZRpc rpc, ZPackage pkg)
         {
             string? version = pkg.ReadString();
-            string? hash = pkg.ReadString();
-
-            string? hashForAssembly = ComputeHashForMod().Replace("-", "");
             AzuAutoStorePlugin.AzuAutoStoreLogger.LogInfo($"Version check, local: {AzuAutoStorePlugin.ModVersion},  remote: {version}");
-            if (hash != hashForAssembly || version != AzuAutoStorePlugin.ModVersion)
+            if (version != AzuAutoStorePlugin.ModVersion)
             {
-                AzuAutoStorePlugin.ConnectionError = $"{AzuAutoStorePlugin.ModName} Installed: {AzuAutoStorePlugin.ModVersion} {hashForAssembly}\n Needed: {version} {hash}";
+                AzuAutoStorePlugin.ConnectionError = $"{AzuAutoStorePlugin.ModName} Installed: {AzuAutoStorePlugin.ModVersion}\n Needed: {version}";
                 if (!ZNet.instance.IsServer()) return;
                 // Different versions - force disconnect client from server
                 AzuAutoStorePlugin.AzuAutoStoreLogger.LogWarning($"Peer ({rpc.m_socket.GetHostName()}) has incompatible version, disconnecting...");
@@ -105,21 +101,6 @@ namespace AzuAutoStore
                     ValidatedPeers.Add(rpc);
                 }
             }
-        }
-
-        public static string ComputeHashForMod()
-        {
-            using SHA256 sha256Hash = SHA256.Create();
-            // ComputeHash - returns byte array  
-            byte[] bytes = sha256Hash.ComputeHash(File.ReadAllBytes(Assembly.GetExecutingAssembly().Location));
-            // Convert byte array to a string   
-            StringBuilder builder = new();
-            foreach (byte b in bytes)
-            {
-                builder.Append(b.ToString("X2"));
-            }
-
-            return builder.ToString();
         }
     }
 }
