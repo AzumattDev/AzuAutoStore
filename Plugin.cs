@@ -3,13 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-using AzuAutoStore.Patches;
 using AzuAutoStore.Patches.Favoriting;
 using AzuAutoStore.Util;
 using BepInEx;
-using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -24,7 +20,7 @@ namespace AzuAutoStore
     public class AzuAutoStorePlugin : BaseUnityPlugin
     {
         internal const string ModName = "AzuAutoStore";
-        internal const string ModVersion = "2.1.1";
+        internal const string ModVersion = "2.1.2";
         internal const string Author = "Azumatt";
         internal const string ModGUID = $"{Author}.{ModName}";
         private static readonly string ConfigFileName = ModGUID + ".cfg";
@@ -36,12 +32,12 @@ namespace AzuAutoStore
 
         internal static readonly string yamlFileName = $"{ModGUID}.yml";
         internal static readonly string yamlPath = Paths.ConfigPath + Path.DirectorySeparatorChar + yamlFileName;
-        internal static readonly CustomSyncedValue<string> CraftyContainerData = new(ConfigSync, "azuautostoreData", "");
+        internal static readonly CustomSyncedValue<string> AzuAutoStoreContainerData = new(ConfigSync, "azuautostoreData", "");
         internal static readonly CustomSyncedValue<string> CraftyContainerGroupsData = new(ConfigSync, "azuautostoreGroupsData", "");
 
         //
         internal static Dictionary<string, object> yamlData;
-        internal static Dictionary<string, HashSet<string>> groups;
+        internal static Dictionary<string?, HashSet<string?>> groups;
         internal static AzuAutoStorePlugin self;
 
         public enum Toggle
@@ -76,12 +72,15 @@ namespace AzuAutoStore
 
             SecondsToWaitBeforeStoring = config("1 - General", "Seconds To Wait Before Storing", 10,
                 new ConfigDescription("The number of seconds to wait before storing items into chests nearby automatically after you have pressed your hotkey to pause.", new AcceptableValueRange<int>(0, 60)));
+            IntervalSeconds = config("1 - General", nameof(IntervalSeconds), 10.0f,
+                new ConfigDescription("The number of seconds that must pass before the chest will do an automatic check for items nearby, WARNING: Reducing this will decrease performance!"));
 
             _storeShortcut = config("2 - Shortcuts", "Store Shortcut", new KeyboardShortcut(KeyCode.Period),
                 new ConfigDescription("Keyboard shortcut/Hotkey to store your inventory into nearby containers.", null, new ConfigurationManagerAttributes() { Order = 1 }), false);
 
             _pauseShortcut = config("2 - Shortcuts", "Pause Shortcut", new KeyboardShortcut(KeyCode.Period, KeyCode.LeftShift),
                 "Keyboard shortcut/Hotkey to temporarily stop storing items into chests nearby automatically. Does not override the player hotkey store.", false);
+            SearchModifierKeybind = config("2 - Shortcuts", nameof(SearchModifierKeybind), new KeyboardShortcut(KeyCode.Y), $"While holding this, you can search nearby chests for the prefab you clicked in your inventory.", false);
 
             var sectionName = "3 - Favoriting";
             string favoritingKey = $"While holding this, left clicking on items or right clicking on slots favorites them, disallowing storing";
@@ -108,8 +107,8 @@ namespace AzuAutoStore
                 WriteConfigFileFromResource(yamlPath);
             }
 
-            CraftyContainerData.ValueChanged += OnValChangedUpdate; // check for file changes
-            CraftyContainerData.AssignLocalValue(File.ReadAllText(yamlPath));
+            AzuAutoStoreContainerData.ValueChanged += OnValChangedUpdate; // check for file changes
+            AzuAutoStoreContainerData.AssignLocalValue(File.ReadAllText(yamlPath));
 
             AutoDoc();
             Assembly assembly = Assembly.GetExecutingAssembly();
@@ -234,7 +233,7 @@ namespace AzuAutoStore
             try
             {
                 AzuAutoStoreLogger.LogDebug("ReadConfigValues called");
-                CraftyContainerData.AssignLocalValue(File.ReadAllText(yamlPath));
+                AzuAutoStoreContainerData.AssignLocalValue(File.ReadAllText(yamlPath));
             }
             catch
             {
@@ -248,7 +247,7 @@ namespace AzuAutoStore
             AzuAutoStoreLogger.LogDebug("OnValChanged called");
             try
             {
-                YamlUtils.ReadYaml(CraftyContainerData.Value);
+                YamlUtils.ReadYaml(AzuAutoStoreContainerData.Value);
                 YamlUtils.ParseGroups();
             }
             catch (Exception e)
@@ -294,6 +293,7 @@ namespace AzuAutoStore
         private static ConfigEntry<KeyboardShortcut> _storeShortcut = null!;
         private static ConfigEntry<KeyboardShortcut> _pauseShortcut = null!;
         internal static ConfigEntry<int> SecondsToWaitBeforeStoring = null!;
+        internal static ConfigEntry<float> IntervalSeconds = null!;
         internal static ConfigEntry<float> PlayerRange = null!;
         internal static ConfigEntry<float> FallbackRange = null!;
         internal static ConfigEntry<Toggle> PlayerIgnoreHotbar = null!;
@@ -303,16 +303,17 @@ namespace AzuAutoStore
 
         // Favoriting
 
-        public static ConfigEntry<Color> BorderColorFavoritedItem;
-        public static ConfigEntry<Color> BorderColorFavoritedItemOnFavoritedSlot;
-        public static ConfigEntry<Color> BorderColorFavoritedSlot;
-        public static ConfigEntry<bool> DisplayTooltipHint;
-        public static ConfigEntry<KeyboardShortcut> FavoritingModifierKeybind1;
-        public static ConfigEntry<KeyboardShortcut> FavoritingModifierKeybind2;
+        public static ConfigEntry<Color> BorderColorFavoritedItem = null!;
+        public static ConfigEntry<Color> BorderColorFavoritedItemOnFavoritedSlot = null!;
+        public static ConfigEntry<Color> BorderColorFavoritedSlot = null!;
+        public static ConfigEntry<bool> DisplayTooltipHint = null!;
+        public static ConfigEntry<KeyboardShortcut> FavoritingModifierKeybind1 = null!;
+        public static ConfigEntry<KeyboardShortcut> FavoritingModifierKeybind2 = null!;
+        public static ConfigEntry<KeyboardShortcut> SearchModifierKeybind = null!;
 
-        public static ConfigEntry<string> FavoritedItemTooltip;
-        public static ConfigEntry<string> FavoritedSlotTooltip;
-        public static ConfigEntry<string> ItemOnFavoritedSlotTooltip;
+        public static ConfigEntry<string> FavoritedItemTooltip = null!;
+        public static ConfigEntry<string> FavoritedSlotTooltip = null!;
+        public static ConfigEntry<string> ItemOnFavoritedSlotTooltip = null!;
 
         private ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description,
             bool synchronizedSetting = true)

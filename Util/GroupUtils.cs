@@ -26,7 +26,7 @@ public class GroupUtils
         return new List<string>();
     }
 
-    public static bool IsGroupDefined(string groupName)
+    public static bool IsGroupDefined(string? groupName)
     {
         if (AzuAutoStorePlugin.yamlData == null)
         {
@@ -55,19 +55,19 @@ public class GroupUtils
 
 
 // Check if a group exists in the container data
-    public static bool GroupExists(string groupName)
+    public static bool GroupExists(string? groupName)
     {
         return AzuAutoStorePlugin.groups.ContainsKey(groupName);
     }
 
 // Get a list of all groups in the container data
-    public static List<string> GetAllGroups()
+    public static List<string?> GetAllGroups()
     {
         return AzuAutoStorePlugin.groups.Keys.ToList();
     }
 
 // Get a list of all items in a group
-    public static List<string> GetItemsInGroup(string groupName)
+    public static List<string> GetItemsInGroup(string? groupName)
     {
         if (AzuAutoStorePlugin.groups.TryGetValue(groupName, out HashSet<string> groupPrefabs))
         {

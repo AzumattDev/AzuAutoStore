@@ -106,13 +106,11 @@ groups:
     - ArmorBronzeChest # Item prefab name, note that this is case sensitive and must be the prefab name
     - ArmorBronzeLegs
     - ArmorBronzeHelmet
-  GodGear:
-    - Mjolnir
   Tier 2 Items:
     - Bronze
     - PickaxeBronze
     - ArmorBronzeChest
-    - ArmorBronzeLeggings
+    - ArmorBronzeLegs
 
 
 # By default, if you don't specify a container below, it will be considered as you want to allow storing all objects into it.
@@ -151,7 +149,7 @@ piece_chest_wood:
     - Bronze
     - PickaxeBronze
     - ArmorBronzeChest
-    - ArmorBronzeLeggings
+    - ArmorBronzeLegs
 
 piece_chest_private:
   range: 10

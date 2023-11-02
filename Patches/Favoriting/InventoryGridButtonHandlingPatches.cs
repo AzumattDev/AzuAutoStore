@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using HarmonyLib;
+﻿using HarmonyLib;
 
 namespace AzuAutoStore.Patches.Favoriting
 {
@@ -25,7 +21,7 @@ namespace AzuAutoStore.Patches.Favoriting
         {
             Vector2i buttonPos = __instance.GetButtonPos(clickHandler.gameObject);
 
-            return HandleClick(__instance, buttonPos, isLeftClick);
+            return HandleClick(__instance, buttonPos, isLeftClick, AzuAutoStorePlugin.SearchModifierKeybind.Value.IsKeyHeld());
         }
 
         /*[HarmonyPatch(nameof(InventoryGrid.UpdateGamepad))]
@@ -130,7 +126,7 @@ namespace AzuAutoStore.Patches.Favoriting
             }
         }*/
 
-        internal static bool HandleClick(InventoryGrid __instance, Vector2i buttonPos, bool isLeftClick)
+        internal static bool HandleClick(InventoryGrid __instance, Vector2i buttonPos, bool isLeftClick, bool searchBypass = false)
         {
             if (InventoryGui.instance.m_playerGrid != __instance)
             {
@@ -159,24 +155,34 @@ namespace AzuAutoStore.Patches.Favoriting
                 return true;
             }
 
-            if (!isLeftClick)
+            switch (isLeftClick)
             {
-                UserConfig.GetPlayerConfig(localPlayer.GetPlayerID()).ToggleSlotFavoriting(buttonPos);
-            }
-            else
-            {
-                ItemDrop.ItemData itemAt = __instance.m_inventory.GetItemAt(buttonPos.x, buttonPos.y);
-
-                if (itemAt == null)
+                case false:
+                    UserConfig.GetPlayerConfig(localPlayer.GetPlayerID()).ToggleSlotFavoriting(buttonPos);
+                    break;
+                case true when searchBypass:
                 {
-                    return true;
+                    ItemDrop.ItemData itemAt = __instance.m_inventory.GetItemAt(buttonPos.x, buttonPos.y);
+                    Chat.instance.TryRunCommand($"azuautostoresearch {itemAt.m_dropPrefab.name.ToLower()}", false, true);
+                    break;
                 }
-
-                bool wasToggleSuccessful = UserConfig.GetPlayerConfig(localPlayer.GetPlayerID()).ToggleItemNameFavoriting(itemAt.m_shared);
-
-                if (!wasToggleSuccessful)
+                default:
                 {
-                    //localPlayer.Message(MessageHud.MessageType.Center, LocalizationConfig.GetRelevantTranslation(LocalizationConfig.CantFavoriteTrashFlaggedItemWarning, nameof(LocalizationConfig.CantFavoriteTrashFlaggedItemWarning)), 0, null);
+                    ItemDrop.ItemData itemAt = __instance.m_inventory.GetItemAt(buttonPos.x, buttonPos.y);
+
+                    if (itemAt == null)
+                    {
+                        return true;
+                    }
+
+                    bool wasToggleSuccessful = UserConfig.GetPlayerConfig(localPlayer.GetPlayerID()).ToggleItemNameFavoriting(itemAt.m_shared);
+
+                    if (!wasToggleSuccessful)
+                    {
+                        //localPlayer.Message(MessageHud.MessageType.Center, LocalizationConfig.GetRelevantTranslation(LocalizationConfig.CantFavoriteTrashFlaggedItemWarning, nameof(LocalizationConfig.CantFavoriteTrashFlaggedItemWarning)), 0, null);
+                    }
+
+                    break;
                 }
             }
 

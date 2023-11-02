@@ -164,8 +164,9 @@ Pause Shortcut [Not Synced with Server]
 #         - foodStamina
 #   Potion:
 #     - Criteria: The following properties must meet the specified conditions on the sharedData property of the ItemDrop script:
-#         - food > 0.0
-#         - foodStamina == 0.0
+#         - 'food' > 0.0
+#         - 'foodStamina' == 0.0
+#         - Any status effect names/categories contain "potion"
 #   Fish:
 #     - itemType: Fish
 #   Swords, Bows, Crossbows, Axes, Clubs, Knives, Pickaxes, Polearms, Spears:
@@ -181,8 +182,42 @@ Pause Shortcut [Not Synced with Server]
 #         - Polearms: skillType == Skills.SkillType.Polearms
 #         - Spears: skillType == Skills.SkillType.Spears
 #            Example:   An item with itemType set to OneHandedWeapon and skillType set to Skills.SkillType.Swords would belong to the Swords group.
+#   Armor:
+#     - itemType: Chest, Legs, Shoulder, Helmet
 #   Equipment:
-#     - itemType: Torch
+#     - itemType: Torch, Bow, OneHandedWeapon, TwoHandedWeapon, TwoHandedWeaponLeft, Helmet, Chest, Legs, Shoulder, Utility, Shield
+#   Weapons:
+#     - itemType: OneHandedWeapon, TwoHandedWeapon, TwoHandedWeaponLeft, Bows, Swords, Crossbows, Axes, Clubs, Knives, Pickaxes, Polearms, Spears
+#   Shield:
+#     - itemType: Shield
+#   Round Shield:
+#     - itemType: Shield
+#     - Criteria: sharedData.m_timedBlockBonus > 0.0 "round"
+#   Tower Shield:
+#     - itemType: Shield
+#     - Criteria: sharedData.m_timedBlockBonus <= 0.0 "tower"
+#   Chest:
+#     - itemType: Chest
+#   Legs:
+#     - itemType: Legs
+#   Shoulder:
+#     - itemType: Shoulder
+#   Helmet:
+#     - itemType: Helmet
+#   Utility:
+#     - itemType: Utility
+#   Ammo:
+#     - itemType: Ammo
+#   Arrows:
+#     - itemType: Ammo
+#     - Criteria: sharedData.m_ammoType == "$ammo_arrows"
+#   Bolts:
+#     - itemType: Ammo
+#     - Criteria: sharedData.m_ammoType == "$ammo_bolts"
+#   ElementalMagic:
+#     - itemType: ElementalMagic
+#   BloodMagic:
+#     - itemType: BloodMagic
 #   Boss Trophy:
 #     - itemType: Trophy
 #     - Criteria: sharedData.m_name ends with any of the following boss names:
@@ -216,47 +251,15 @@ Pause Shortcut [Not Synced with Server]
 
 
 groups:
-  Armor: # Group name
+  BronzeGear: # Group name
     - ArmorBronzeChest # Item prefab name, note that this is case sensitive and must be the prefab name
     - ArmorBronzeLegs
-    - ArmorCarapaceChest
-    - ArmorCarapaceLegs
-    - ArmorFenringChest
-    - ArmorFenringLegs
-    - ArmorIronChest
-    - ArmorIronLegs
-    - ArmorLeatherChest
-    - ArmorLeatherLegs
-    - ArmorMageChest
-    - ArmorMageLegs
-    - ArmorPaddedCuirass
-    - ArmorPaddedGreaves
-    - ArmorRagsChest
-    - ArmorRagsLegs
-    - ArmorRootChest
-    - ArmorRootLegs
-    - ArmorTrollLeatherChest
-    - ArmorTrollLeatherLegs
-    - ArmorWolfChest
-    - ArmorWolfLegs
-  Arrows:
-    - ArrowBronze
-    - ArrowCarapace
-    - ArrowFire
-    - ArrowFlint
-    - ArrowFrost
-    - ArrowIron
-    - ArrowNeedle
-    - ArrowObsidian
-    - ArrowPoison
-    - ArrowSilver
-    - ArrowWood
-    - draugr_arrow
+    - ArmorBronzeHelmet
   Tier 2 Items:
     - Bronze
     - PickaxeBronze
     - ArmorBronzeChest
-    - ArmorBronzeLeggings
+    - ArmorBronzeLegs
 
 
 # By default, if you don't specify a container below, it will be considered as you want to allow storing all objects into it.
@@ -295,7 +298,7 @@ piece_chest_wood:
     - Bronze
     - PickaxeBronze
     - ArmorBronzeChest
-    - ArmorBronzeLeggings
+    - ArmorBronzeLegs
 
 piece_chest_private:
   range: 10

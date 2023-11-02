@@ -58,12 +58,10 @@ public class Boxes
         {
             if (gameObject == null || container == null) continue;
             float distance = Vector3.Distance(container.transform.position, gameObject.transform.position);
-            if (distance <= rangeToUse)
-            {
-                // log the distance and the range to use
-                AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Distance to container {container.name} is {distance}m, within the range of {rangeToUse}m set to store items for this chest");
-                nearbyContainers.Add(container);
-            }
+            if (!(distance <= rangeToUse)) continue;
+            // log the distance and the range to use
+            AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Distance to container {container.name} is {distance}m, within the range of {rangeToUse}m set to store items for this chest");
+            nearbyContainers.Add(container);
         }
 
         return nearbyContainers;
@@ -86,9 +84,9 @@ public class Boxes
 
     // Get a list of all excluded prefabs for all containers in the container data
 
-    public static Dictionary<string, List<string>> GetExcludedPrefabsForAllContainers()
+    public static Dictionary<string, List<string?>> GetExcludedPrefabsForAllContainers()
     {
-        Dictionary<string, List<string>> excludedPrefabsForAllContainers = new Dictionary<string, List<string>>();
+        Dictionary<string, List<string?>> excludedPrefabsForAllContainers = new Dictionary<string, List<string?>>();
 
         foreach (string? container in GetAllContainers())
         {
@@ -177,7 +175,7 @@ public class Boxes
         {
             foreach (object? excludeItem in exclusionList)
             {
-                string excludeItemName = excludeItem.ToString();
+                string? excludeItemName = excludeItem.ToString();
 
                 if (AzuAutoStorePlugin.groups.TryGetValue(excludeItemName, out HashSet<string> groupPrefabs))
                 {
@@ -196,7 +194,7 @@ public class Boxes
         return false;
     }
 
-    public static List<string> GetExcludedPrefabs(string container)
+    public static List<string?> GetExcludedPrefabs(string container)
     {
         if (AzuAutoStorePlugin.yamlData.TryGetValue(container, out object containerData))
         {
@@ -206,10 +204,10 @@ public class Boxes
                 List<object>? excludeList = excludeData as List<object>;
                 if (excludeList != null)
                 {
-                    List<string> excludedPrefabs = new List<string>();
+                    List<string?> excludedPrefabs = new List<string?>();
                     foreach (object? excludeItem in excludeList)
                     {
-                        string excludeItemName = excludeItem.ToString();
+                        string? excludeItemName = excludeItem.ToString();
                         if (AzuAutoStorePlugin.groups.TryGetValue(excludeItemName, out HashSet<string> groupPrefabs))
                         {
                             excludedPrefabs.AddRange(groupPrefabs);
@@ -225,7 +223,7 @@ public class Boxes
             }
         }
 
-        return new List<string>();
+        return new List<string?>();
     }
 
     public static void RPC_Ownership(Container container, long uid)

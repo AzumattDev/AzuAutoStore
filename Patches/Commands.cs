@@ -19,31 +19,52 @@ static class TerminalInitTerminalPatch
             Piece.s_ghostLayer = LayerMask.NameToLayer("ghost");
         foreach (Piece allPiece in Piece.s_allPieces)
         {
-            if (allPiece.gameObject.layer != Piece.s_ghostLayer && (double) Vector3.Distance(p, allPiece.transform.position) < (double) radius)
+            if (allPiece.gameObject.layer != Piece.s_ghostLayer && (double)Vector3.Distance(p, allPiece.transform.position) < (double)radius)
                 pieces.Add(allPiece);
         }
     }
+
     static void Postfix(Terminal __instance)
     {
         Terminal.ConsoleCommand searchNearbyCwItems = new("azuautostoresearch",
-            "[prefab name] - search for items in chests near the player. It uses the prefab name",
+            "[prefab name/query text] - search for items in chests near the player. It uses the prefab name",
             args =>
             {
                 if (args.Length <= 1 || !ZNetScene.instance)
                     return;
 
-                SearchNearbyContainersFor(args[1]);
+                int itemCount = 0;
+                bool itemFound = SearchNearbyContainersFor(args[1]);
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, itemFound
+                    ? $"Found {itemCount} items matching '{args[1]}' in nearby containers."
+                    : $"<color=red>No items matching '{args[1]}' found in nearby containers.</color>");
 
 
-                static void SearchNearbyContainersFor(string query)
+                bool SearchNearbyContainersFor(string query)
                 {
+                    bool found = false;
+                    Piece closestPiece = null;
+                    float closestDistance = float.MaxValue;
                     foreach (Piece piece in GetNearbyMatchingPieces(query))
                     {
                         Functions.PingContainer(piece);
+                        found = true;
+                        float distance = Vector3.Distance(piece.transform.position, Player.m_localPlayer.transform.position);
+                        if (!(distance < closestDistance)) continue;
+                        closestDistance = distance;
+                        closestPiece = piece;
                     }
+
+                    if (closestPiece != null)
+                    {
+                        Vector3 pos = closestPiece.transform.position;
+                        Player.m_localPlayer.SetLookDir(pos - Player.m_localPlayer.transform.position, 3.5f);
+                    }
+
+                    return found;
                 }
 
-                static IEnumerable<Piece> GetNearbyMatchingPieces(string query)
+                IEnumerable<Piece> GetNearbyMatchingPieces(string query)
                 {
                     List<Piece> pieces = new();
 
@@ -55,21 +76,23 @@ static class TerminalInitTerminalPatch
 
                     return pieces
                         .Where(p => p.GetComponent<Container>())
-                        .Where(p => ContainerContainsMatchingItem(p, query));
+                        .Where(p => ContainerContainsMatchingItem(p, query.ToLower(), ref itemCount));
                 }
 
-                static bool ContainerContainsMatchingItem(Component container, string query)
+                static bool ContainerContainsMatchingItem(Component container, string query, ref int count)
                 {
-                    return container
-                        .GetComponent<Container>()
-                        .GetInventory()
-                        .GetAllItems()
-                        .Any(i => NormalizedItemName(i).Contains(query));
+                    Inventory? inventory = container.GetComponent<Container>().GetInventory();
+                    IEnumerable<ItemDrop.ItemData> matchingItems = inventory.GetAllItems().Where(i => NormalizedItemName(i).Contains(query) || i.m_shared.m_name.ToLower().Contains(query));
+
+                    IEnumerable<ItemDrop.ItemData> itemDatas = matchingItems.ToList();
+                    count += itemDatas.Sum(item => item.m_stack);
+
+                    return itemDatas.Any();
                 }
 
                 static string NormalizedItemName(ItemDrop.ItemData itemData)
                 {
-                    return Utils.GetPrefabName(itemData.m_dropPrefab);
+                    return Utils.GetPrefabName(itemData.m_dropPrefab).ToLower();
                 }
             },
             optionsFetcher: () =>

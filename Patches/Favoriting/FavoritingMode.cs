@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace AzuAutoStore.Patches.Favoriting
+﻿namespace AzuAutoStore.Patches.Favoriting
 {
     internal class FavoritingMode
     {
@@ -21,7 +19,7 @@ namespace AzuAutoStore.Patches.Favoriting
         {
             return HasCurrentlyToggledFavoriting
                    || AzuAutoStorePlugin.FavoritingModifierKeybind1.Value.IsKeyHeld()
-                   || AzuAutoStorePlugin.FavoritingModifierKeybind2.Value.IsKeyHeld();
+                   || AzuAutoStorePlugin.FavoritingModifierKeybind2.Value.IsKeyHeld() || AzuAutoStorePlugin.SearchModifierKeybind.Value.IsKeyHeld();
         }
     }
 }

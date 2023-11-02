@@ -1,9 +1,6 @@
 ﻿using System.Collections;
-using BepInEx;
-using BepInEx.Configuration;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace AzuAutoStore.Patches.Favoriting

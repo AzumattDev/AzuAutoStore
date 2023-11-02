@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using AzuAutoStore.Util;
 using AzuAutoStore.Util.Compatibility.WardIsLove;
@@ -55,7 +54,7 @@ internal static class ContainerAwakePatch
 
     private static IEnumerator PeriodicCheck(Container containerInstance, bool execNext = false)
     {
-        float regularSearchInterval = 10.0f;
+        float regularSearchInterval = AzuAutoStorePlugin.IntervalSeconds.Value;
         float quickSearchInterval = 0.0f;
         float currentInterval = regularSearchInterval;
 

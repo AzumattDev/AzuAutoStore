@@ -49,7 +49,7 @@ public class MiscFunctions
             if (drop != null)
             {
                 ItemDrop.ItemData.SharedData sharedData = itemDrop.m_itemData.m_shared;
-                List<string> groupNames = new();
+                List<string?> groupNames = new();
 
                 if (sharedData.m_food > 0.0 && sharedData.m_foodStamina > 0.0)
                 {
@@ -219,7 +219,7 @@ public class MiscFunctions
                         break;
                 }
 
-                foreach (string groupName in groupNames)
+                foreach (string? groupName in groupNames)
                 {
                     if (!string.IsNullOrEmpty(groupName))
                     {
@@ -241,16 +241,16 @@ public class MiscFunctions
     // Store a flag indicating whether any group data has changed. This can help minimize disk writes.
     private static bool dataChanged = false;
 
-    private static void AddItemToGroup(string groupName, ItemDrop itemDrop)
+    private static void AddItemToGroup(string? groupName, ItemDrop itemDrop)
     {
         // Check if the group exists, and if not, create it
         if (!GroupUtils.GroupExists(groupName))
         {
-            AzuAutoStorePlugin.groups[groupName] = new HashSet<string>();
+            AzuAutoStorePlugin.groups[groupName] = new HashSet<string?>();
         }
 
         // Add the item to the group
-        string prefabName = Utils.GetPrefabName(itemDrop.m_itemData.m_dropPrefab);
+        string? prefabName = Utils.GetPrefabName(itemDrop.m_itemData.m_dropPrefab);
         if (AzuAutoStorePlugin.groups[groupName].Contains(prefabName)) return;
         AzuAutoStorePlugin.groups[groupName].Add(prefabName);
         AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"(CreatePredefinedGroups) Added {prefabName} to {groupName}");
@@ -267,7 +267,7 @@ public class MiscFunctions
         using StreamWriter file = new(path, false);
 
         // Before writing to the file, alphabetize the groups then the prefab names
-        foreach (string group in AzuAutoStorePlugin.groups.Keys.OrderBy(x => x))
+        foreach (string? group in AzuAutoStorePlugin.groups.Keys.OrderBy(x => x))
         {
             file.WriteLine(group);
             foreach (string prefab in AzuAutoStorePlugin.groups[group].OrderBy(x => x))

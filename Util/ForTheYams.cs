@@ -15,32 +15,55 @@ public static class YamlUtils
 
     internal static void ParseGroups()
     {
-        // Check if the groups dictionary has been initialized
-        if (AzuAutoStorePlugin.groups == null)
-            AzuAutoStorePlugin.groups = new Dictionary<string, HashSet<string>>();
+        // Initialize the groups dictionary if it's null
+        AzuAutoStorePlugin.groups ??= new Dictionary<string?, HashSet<string?>>();
+
+        // Validate yamlData before trying to use it
+        if (AzuAutoStorePlugin.yamlData == null)
+        {
+            AzuAutoStorePlugin.AzuAutoStoreLogger.LogError("yamlData is null.");
+            return;
+        }
 
         if (AzuAutoStorePlugin.yamlData.TryGetValue("groups", out object groupData))
         {
-            Dictionary<object, object>? groupDict = groupData as Dictionary<object, object>;
-            if (groupDict != null)
+            // Safely cast to the expected Dictionary type
+            if (groupData is Dictionary<object, object> groupDict)
             {
                 foreach (KeyValuePair<object, object> group in groupDict)
                 {
-                    string groupName = group.Key.ToString();
+                    string? groupName = group.Key?.ToString();
+                    if (groupName == null) continue; // Skip if the key can't be converted to string
+
+                    // Safely cast to the expected List type
                     if (group.Value is List<object> prefabs)
                     {
-                        HashSet<string> prefabNames = new HashSet<string>();
-                        foreach (object? prefab in prefabs)
+                        HashSet<string?> prefabNames = new();
+
+                        foreach (object prefab in prefabs)
                         {
-                            prefabNames.Add(prefab.ToString());
+                            string? prefabName = prefab?.ToString();
+                            if (prefabName != null)
+                            {
+                                prefabNames.Add(prefabName);
+                            }
                         }
 
                         AzuAutoStorePlugin.groups[groupName] = prefabNames;
                     }
                 }
             }
+            else
+            {
+                AzuAutoStorePlugin.AzuAutoStoreLogger.LogError("groupData is not of type Dictionary<object, object>.");
+            }
+        }
+        else
+        {
+            AzuAutoStorePlugin.AzuAutoStoreLogger.LogError("No 'groups' key found in yamlData.");
         }
     }
+
     public static void WriteYaml(string filePath)
     {
         ISerializer? serializer = new SerializerBuilder().Build();
