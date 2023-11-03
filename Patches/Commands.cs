@@ -43,7 +43,7 @@ static class TerminalInitTerminalPatch
                 bool SearchNearbyContainersFor(string query)
                 {
                     bool found = false;
-                    Piece closestPiece = null;
+                    Piece closestPiece = null!;
                     float closestDistance = float.MaxValue;
                     foreach (Piece piece in GetNearbyMatchingPieces(query))
                     {

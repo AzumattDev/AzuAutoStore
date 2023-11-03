@@ -70,7 +70,7 @@ public class Boxes
 
     public static void AddContainerIfNotExists(string containerName)
     {
-        if (!AzuAutoStorePlugin.yamlData.ContainsKey(containerName))
+        if (AzuAutoStorePlugin.yamlData != null && !AzuAutoStorePlugin.yamlData.ContainsKey(containerName))
         {
             AzuAutoStorePlugin.yamlData[containerName] = new Dictionary<string, object>
             {
@@ -88,7 +88,7 @@ public class Boxes
     {
         Dictionary<string, List<string?>> excludedPrefabsForAllContainers = new Dictionary<string, List<string?>>();
 
-        foreach (string? container in GetAllContainers())
+        foreach (string? container in GetAllContainers()!)
         {
             excludedPrefabsForAllContainers[container] = GetExcludedPrefabs(container);
         }
@@ -97,9 +97,9 @@ public class Boxes
     }
 
     // Get a list of all containers
-    public static List<string> GetAllContainers()
+    public static List<string>? GetAllContainers()
     {
-        return AzuAutoStorePlugin.yamlData.Keys.Where(key => key != "groups").ToList();
+        return AzuAutoStorePlugin.yamlData?.Keys.Where(key => key != "groups").ToList();
     }
 
     // Check if a prefab is excluded from a container
@@ -157,7 +157,7 @@ public class Boxes
 
             if (GroupUtils.IsGroupDefined((string)excludedItem))
             {
-                List<string>? groupItems = GroupUtils.GetItemsInGroup((string)excludedItem);
+                List<string?>? groupItems = GroupUtils.GetItemsInGroup((string)excludedItem);
                 if (groupItems.Contains(prefab))
                 {
                     return false;
@@ -177,7 +177,7 @@ public class Boxes
             {
                 string? excludeItemName = excludeItem.ToString();
 
-                if (AzuAutoStorePlugin.groups.TryGetValue(excludeItemName, out HashSet<string> groupPrefabs))
+                if (AzuAutoStorePlugin.groups.TryGetValue(excludeItemName, out HashSet<string?>? groupPrefabs))
                 {
                     if (groupPrefabs.Contains(prefab))
                     {
@@ -196,7 +196,7 @@ public class Boxes
 
     public static List<string?> GetExcludedPrefabs(string container)
     {
-        if (AzuAutoStorePlugin.yamlData.TryGetValue(container, out object containerData))
+        if (AzuAutoStorePlugin.yamlData != null && AzuAutoStorePlugin.yamlData.TryGetValue(container, out object containerData))
         {
             Dictionary<object, object>? containerInfo = containerData as Dictionary<object, object>;
             if (containerInfo != null && containerInfo.TryGetValue("exclude", out object excludeData))
@@ -208,7 +208,7 @@ public class Boxes
                     foreach (object? excludeItem in excludeList)
                     {
                         string? excludeItemName = excludeItem.ToString();
-                        if (AzuAutoStorePlugin.groups.TryGetValue(excludeItemName, out HashSet<string> groupPrefabs))
+                        if (AzuAutoStorePlugin.groups.TryGetValue(excludeItemName, out HashSet<string?>? groupPrefabs))
                         {
                             excludedPrefabs.AddRange(groupPrefabs);
                         }
@@ -244,12 +244,12 @@ public class Boxes
     {
         if (response)
         {
-            Functions.inProgressTotal += Functions.TryStoreInContainer(container);
+            Functions.InProgressTotal += Functions.TryStoreInContainer(container);
         }
 
-        if (--Functions.inProgressStores == 0)
+        if (--Functions.InProgressStores == 0)
         {
-            Functions.StoreSuccess(Functions.inProgressTotal);
+            Functions.StoreSuccess(Functions.InProgressTotal);
         }
     }
 

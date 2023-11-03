@@ -33,7 +33,7 @@ internal static class ContainerAwakePatch
         try
         {
             // Only add containers that the player should have access to
-            if (WardIsLovePlugin.IsLoaded() && WardIsLovePlugin.WardEnabled().Value &&
+            if (WardIsLovePlugin.IsLoaded() && WardIsLovePlugin.WardEnabled()!.Value &&
                 WardMonoscript.CheckAccess(__instance.transform.position, flash: false, wardCheck: true))
             {
                 Boxes.AddContainer(__instance);
@@ -89,6 +89,7 @@ internal static class ContainerAwakePatch
                 foreach (Collider? collider in Physics.OverlapSphere(containerInstance.transform.position, Functions.GetContainerRange(containerInstance), LayerMask.GetMask("item")))
                     if (collider?.attachedRigidbody)
                     {
+                        if (collider == null) continue;
                         ItemDrop? item = collider.attachedRigidbody.GetComponent<ItemDrop>();
                         if (!item) continue;
                         Functions.LogDebug($"Nearby item name: {item.m_itemData.m_dropPrefab.name}");

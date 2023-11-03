@@ -270,10 +270,11 @@ public class MiscFunctions
         foreach (string? group in AzuAutoStorePlugin.groups.Keys.OrderBy(x => x))
         {
             file.WriteLine(group);
-            foreach (string prefab in AzuAutoStorePlugin.groups[group].OrderBy(x => x))
-            {
-                file.WriteLine($"\t{prefab}");
-            }
+            if (group != null)
+                foreach (string? prefab in AzuAutoStorePlugin.groups[group].OrderBy(x => x))
+                {
+                    file.WriteLine($"\t{prefab}");
+                }
         }
 
         dataChanged = false;

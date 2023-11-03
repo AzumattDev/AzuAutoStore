@@ -8,16 +8,8 @@ namespace AzuAutoStore.Patches.Favoriting
     internal class ButtonRenderer
     {
         internal static bool hasOpenedInventoryOnce = false;
-        internal static float origButtonLength = -1;
-        internal static Vector3 origButtonPosition;
-
-        internal static TextMeshProUGUI favoritingTogglingButtonText;
-
-        internal static Button favoritingTogglingButton;
-
-        private const float shrinkFactor = 0.9f;
-        private const int vPadding = 8;
-        private const int hAlign = 1;
+        
+        internal static Button favoritingTogglingButton = null!;
 
         internal class MainButtonUpdate
         {

@@ -8,7 +8,7 @@ namespace AzuAutoStore.Patches.Favoriting
     [HarmonyPatch(typeof(InventoryGrid))]
     internal static class BorderRenderer
     {
-        public static Sprite border;
+        public static Sprite border = null!;
 
         [HarmonyPatch(nameof(InventoryGrid.UpdateGui))]
         [HarmonyPostfix]

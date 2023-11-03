@@ -117,17 +117,11 @@ public class Functions
                 continue;
             }
 
-            /*if (item.m_gridPos.x is >= 5 and <= 7 && item.m_gridPos.y == Player.m_localPlayer.m_inventory.GetHeight() - 1 &&
-                AzuAutoStorePlugin.PlayerIgnoreQuickSlots.Value == AzuAutoStorePlugin.Toggle.On)
-            {
-                LogDebug($"Skipping item {item.m_dropPrefab.name} because it is in your quick slots");
-                continue;
-            }*/
             if (AzuExtendedPlayerInventory.API.IsLoaded())
             {
                 // Get quick slot positions
                 List<ItemDrop.ItemData> quickSlotsItems = AzuExtendedPlayerInventory.API.GetQuickSlotsItems();
-                
+
 
                 // Check if the item is in the quick slots
                 if (quickSlotsItems.Any(quickSlotItem => quickSlotItem.m_gridPos == item.m_gridPos))
@@ -157,8 +151,8 @@ public class Functions
         return total;
     }
 
-    internal static int inProgressStores = 0;
-    internal static int inProgressTotal = 0;
+    internal static int InProgressStores = 0;
+    internal static int InProgressTotal = 0;
 
     internal static void TryStore()
     {
@@ -180,30 +174,36 @@ public class Functions
             total += TryStoreInContainer(nearbyContainer);
         }
 
-        if (inProgressStores > 0)
+        if (InProgressStores > 0)
         {
-            LogDebug($"Found {inProgressStores} requests for container ownership still pending...");
-            inProgressTotal += total;
+            LogDebug($"Found {InProgressStores} requests for container ownership still pending...");
+            InProgressTotal += total;
             return;
         }
 
-        inProgressStores = uncheckedContainers.Count(c => c is not null);
-        if (inProgressStores > 0)
+        InProgressStores = uncheckedContainers.Count(c => c is not null);
+        if (InProgressStores > 0)
         {
-            inProgressTotal = total;
+            InProgressTotal = total;
 
             IEnumerator End()
             {
                 yield return new WaitForSeconds(1);
-                StoreSuccess(inProgressTotal);
-                inProgressStores = 0;
+                StoreSuccess(InProgressTotal);
+                InProgressStores = 0;
             }
 
             AzuAutoStorePlugin.self.StartCoroutine(End());
 
             foreach (Container? nearbyContainer in uncheckedContainers)
             {
-                nearbyContainer?.m_nview.InvokeRPC("Autostore Ownership");
+                // prevent claiming ownership of other players (e.g. through adventure backpacks)
+                Player? player = nearbyContainer?.m_nview.GetComponent<Player>();
+
+                if (!player || player == Player.m_localPlayer)
+                {
+                    nearbyContainer?.m_nview.InvokeRPC("Autostore Ownership");
+                }
             }
         }
         else
@@ -216,7 +216,7 @@ public class Functions
     {
         if (total > 0)
         {
-            inProgressTotal = 0;
+            InProgressTotal = 0;
             Player.m_localPlayer.Message(MessageHud.MessageType.Center, $"Stored {total} items from your inventory into nearby containers");
             foreach (Container c in Boxes.ContainersToPing)
             {
@@ -230,12 +230,10 @@ public class Functions
 
     internal static void PingContainer(Component container)
     {
-        if (!string.IsNullOrWhiteSpace(AzuAutoStorePlugin.PingVfxString.Value))
-        {
-            GameObject gameObject = Object.Instantiate(ZNetScene.instance.GetPrefab(AzuAutoStorePlugin.PingVfxString.Value), container.transform.position, Quaternion.identity);
-        }
+        if (AzuAutoStorePlugin.PingContainers.Value == AzuAutoStorePlugin.Toggle.On && container.gameObject.GetComponent<ChestPingEffect>() == null)
+            container.gameObject.AddComponent<ChestPingEffect>();
 
-        if (AzuAutoStorePlugin.HighlightContainers.Value == AzuAutoStorePlugin.Toggle.On)
+        if (AzuAutoStorePlugin.HighlightContainers.Value == AzuAutoStorePlugin.Toggle.On && container.gameObject.GetComponent<HighLightChest>() == null)
             container.gameObject.AddComponent<HighLightChest>();
     }
 

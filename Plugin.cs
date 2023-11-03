@@ -20,7 +20,7 @@ namespace AzuAutoStore
     public class AzuAutoStorePlugin : BaseUnityPlugin
     {
         internal const string ModName = "AzuAutoStore";
-        internal const string ModVersion = "2.1.3";
+        internal const string ModVersion = "2.1.4";
         internal const string Author = "Azumatt";
         internal const string ModGUID = $"{Author}.{ModName}";
         private static readonly string ConfigFileName = ModGUID + ".cfg";
@@ -36,9 +36,9 @@ namespace AzuAutoStore
         internal static readonly CustomSyncedValue<string> CraftyContainerGroupsData = new(ConfigSync, "azuautostoreGroupsData", "");
 
         //
-        internal static Dictionary<string, object> yamlData;
-        internal static Dictionary<string?, HashSet<string?>> groups;
-        internal static AzuAutoStorePlugin self;
+        internal static Dictionary<string, object>? yamlData;
+        internal static Dictionary<string?, HashSet<string?>> groups = null!;
+        internal static AzuAutoStorePlugin self = null!;
 
         public enum Toggle
         {
@@ -69,6 +69,8 @@ namespace AzuAutoStore
                 new ConfigDescription("The VFX to play when a chest is pinged. Leave blank to disable and only highlight the chest. (Full prefab list: https://valheim-modding.github.io/Jotunn/data/prefabs/prefab-list.html)", null, new ConfigurationManagerAttributes() { Order = 2 }));
             HighlightContainers = config("1 - General", "Highlight Containers", Toggle.On,
                 new ConfigDescription("If on, the containers will be highlighted when something is stored in them. If off, the containers will not be highlighted if something is stored in them.", null, new ConfigurationManagerAttributes() { Order = 1 }), false);
+            PingContainers = config("1 - General", "Ping Containers", Toggle.On,
+                new ConfigDescription("If on, the containers will be pinged with the Ping VFX when something is stored in them. If off, the containers will not be pinged if something is stored in them.", null, new ConfigurationManagerAttributes() { Order = 0 }), false);
 
             SecondsToWaitBeforeStoring = config("1 - General", "Seconds To Wait Before Storing", 10,
                 new ConfigDescription("The number of seconds to wait before storing items into chests nearby automatically after you have pressed your hotkey to pause.", new AcceptableValueRange<int>(0, 60)));
@@ -300,6 +302,7 @@ namespace AzuAutoStore
         internal static ConfigEntry<Toggle> PlayerIgnoreQuickSlots = null!;
         internal static ConfigEntry<string> PingVfxString = null!;
         internal static ConfigEntry<Toggle> HighlightContainers = null!;
+        internal static ConfigEntry<Toggle> PingContainers = null!;
 
         // Favoriting
 
@@ -367,10 +370,10 @@ namespace AzuAutoStore
 
         private class ConfigurationManagerAttributes
         {
-            [UsedImplicitly] public int? Order;
-            [UsedImplicitly] public bool? Browsable;
-            [UsedImplicitly] public string? Category;
-            [UsedImplicitly] public Action<ConfigEntryBase>? CustomDrawer;
+            [UsedImplicitly] public int? Order = null!;
+            [UsedImplicitly] public bool? Browsable  = null!;
+            [UsedImplicitly] public string Category  = null!;
+            [UsedImplicitly] public Action<ConfigEntryBase>? CustomDrawer  = null!;
         }
 
         class AcceptableShortcuts : AcceptableValueBase
@@ -383,7 +386,7 @@ namespace AzuAutoStore
             public override bool IsValid(object value) => true;
 
             public override string ToDescriptionString() =>
-                "# Acceptable values: " + string.Join(", ", KeyboardShortcut.AllKeyCodes);
+                "# Acceptable values: " + string.Join(", ", UnityInput.Current.SupportedKeyCodes);
         }
 
         #endregion

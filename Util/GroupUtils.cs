@@ -8,7 +8,7 @@ public class GroupUtils
     // Get a list of all excluded groups for a container
     public static List<string> GetExcludedGroups(string container)
     {
-        if (AzuAutoStorePlugin.yamlData.TryGetValue(container, out object containerData))
+        if (AzuAutoStorePlugin.yamlData != null && AzuAutoStorePlugin.yamlData.TryGetValue(container, out object containerData))
         {
             Dictionary<object, object>? containerInfo = containerData as Dictionary<object, object>;
             if (containerInfo != null && containerInfo.TryGetValue("exclude", out object excludeData))
@@ -41,7 +41,7 @@ public class GroupUtils
             Dictionary<object, object>? groupsData = AzuAutoStorePlugin.yamlData["groups"] as Dictionary<object, object>;
             if (groupsData != null)
             {
-                groupInYaml = groupsData.ContainsKey(groupName);
+                if (groupName != null) groupInYaml = groupsData.ContainsKey(groupName);
             }
             else
             {
@@ -67,14 +67,14 @@ public class GroupUtils
     }
 
 // Get a list of all items in a group
-    public static List<string> GetItemsInGroup(string? groupName)
+    public static List<string?> GetItemsInGroup(string? groupName)
     {
-        if (AzuAutoStorePlugin.groups.TryGetValue(groupName, out HashSet<string> groupPrefabs))
+        if (AzuAutoStorePlugin.groups.TryGetValue(groupName, out HashSet<string?> groupPrefabs))
         {
             return groupPrefabs.ToList();
         }
 
-        return new List<string>();
+        return new List<string?>();
     }
 
     /*public static bool IsItemInGroup(string itemName, string groupName)

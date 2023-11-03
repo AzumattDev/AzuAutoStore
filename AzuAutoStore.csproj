@@ -131,6 +131,7 @@
         <Compile Include="Plugin.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Util\Boxes.cs" />
+        <Compile Include="Util\ChestPingEffect.cs" />
         <Compile Include="Util\Compatibility\WardIsLove\WardIsLovePlugin.cs" />
         <Compile Include="Util\Compatibility\WardIsLove\WardMonoscript.cs" />
         <Compile Include="Util\Compatibility\WILCompat.cs" />

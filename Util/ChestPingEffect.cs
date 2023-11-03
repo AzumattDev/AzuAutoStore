@@ -2,19 +2,13 @@
 
 namespace AzuAutoStore.Util;
 
-public class HighLightChest : MonoBehaviour
+public class ChestPingEffect : MonoBehaviour
 {
-    private WearNTear? wnt;
-
     private void Awake()
     {
-        wnt = TryGetComponent<WearNTear>(out WearNTear? wearNTear) ? wearNTear : null;
-        if (wnt == null)
+        if (!string.IsNullOrWhiteSpace(AzuAutoStorePlugin.PingVfxString.Value))
         {
-            DestroyNow();
-        }
-        else
-        {
+            Object.Instantiate(ZNetScene.instance.GetPrefab(AzuAutoStorePlugin.PingVfxString.Value), transform.position, Quaternion.identity);
             Trigger();
         }
     }
@@ -24,10 +18,5 @@ public class HighLightChest : MonoBehaviour
     public void DestroyNow()
     {
         DestroyImmediate(this);
-    }
-
-    void Update()
-    {
-        wnt?.Highlight();
     }
 }

@@ -70,7 +70,7 @@ namespace AzuAutoStore.Patches.Favoriting
             }
             catch (SerializationException)
             {
-                result = null;
+                result = null!;
             }
 
             return result;
@@ -100,18 +100,20 @@ namespace AzuAutoStore.Patches.Favoriting
             List<Tuple<int, int>>? deserializedFavoritedSlots = new List<Tuple<int, int>>();
             LoadProperty(stream, out deserializedFavoritedSlots);
 
-            foreach (Tuple<int, int>? item in deserializedFavoritedSlots)
-            {
-                _favoritedSlots.Add(new Vector2i(item.Item1, item.Item2));
-            }
+            if (deserializedFavoritedSlots != null)
+                foreach (Tuple<int, int>? item in deserializedFavoritedSlots)
+                {
+                    _favoritedSlots.Add(new Vector2i(item.Item1, item.Item2));
+                }
 
             List<string>? deserializedFavoritedItems = new List<string>();
             LoadProperty(stream, out deserializedFavoritedItems);
 
-            foreach (string? item in deserializedFavoritedItems)
-            {
-                _favoritedItems.Add(item);
-            }
+            if (deserializedFavoritedItems != null)
+                foreach (string? item in deserializedFavoritedItems)
+                {
+                    _favoritedItems.Add(item);
+                }
         }
 
         public void ToggleSlotFavoriting(Vector2i position)
@@ -144,8 +146,8 @@ namespace AzuAutoStore.Patches.Favoriting
         }
 
         private readonly string _configPath;
-        private HashSet<Vector2i> _favoritedSlots;
-        private HashSet<string> _favoritedItems;
+        private HashSet<Vector2i> _favoritedSlots = null!;
+        private HashSet<string> _favoritedItems = null!;
         private static readonly BinaryFormatter Bf = new BinaryFormatter();
     }
 
