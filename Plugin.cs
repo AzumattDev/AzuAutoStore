@@ -20,7 +20,7 @@ namespace AzuAutoStore
     public class AzuAutoStorePlugin : BaseUnityPlugin
     {
         internal const string ModName = "AzuAutoStore";
-        internal const string ModVersion = "2.1.4";
+        internal const string ModVersion = "2.1.5";
         internal const string Author = "Azumatt";
         internal const string ModGUID = $"{Author}.{ModName}";
         private static readonly string ConfigFileName = ModGUID + ".cfg";
@@ -50,38 +50,22 @@ namespace AzuAutoStore
         {
             self = this;
 
-            _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On,
-                new ConfigDescription("If on, the configuration is locked and can be changed by server admins only.", null, new ConfigurationManagerAttributes() { Order = 8 }));
+            _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On, new ConfigDescription("If on, the configuration is locked and can be changed by server admins only.", null, new ConfigurationManagerAttributes() { Order = 8 }));
             ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
 
-            MustHaveExistingItemToPull = config("1 - General", "Must Have Existing Item To Pull", Toggle.On,
-                new ConfigDescription("If on, the chest must already have the item in its inventory to pull it from the world or player into the chest.", null, new ConfigurationManagerAttributes() { Order = 7 }));
-            PlayerRange = config("1 - General", "Player Range", 5f,
-                new ConfigDescription(
-                    "The maximum distance from the player to store items in chests when the Store Shortcut is pressed. Follows storage rules for allowed items.",
-                    new AcceptableValueRange<float>(1f, 100f), new ConfigurationManagerAttributes() { Order = 6 }));
+            MustHaveExistingItemToPull = config("1 - General", "Must Have Existing Item To Pull", Toggle.On, new ConfigDescription("If on, the chest must already have the item in its inventory to pull it from the world or player into the chest.", null, new ConfigurationManagerAttributes() { Order = 7 }));
+            PlayerRange = config("1 - General", "Player Range", 5f, new ConfigDescription("The maximum distance from the player to store items in chests when the Store Shortcut is pressed. Follows storage rules for allowed items.", new AcceptableValueRange<float>(1f, 100f), new ConfigurationManagerAttributes() { Order = 6 }));
             FallbackRange = config("1 - General", "Fallback Range", 10f, new ConfigDescription("The range to use if the container has no range set in the yml file. This will be the fallback range for all containers.", null, new ConfigurationManagerAttributes() { Order = 5 }));
-            PlayerIgnoreHotbar = config("1 - General", "Player Ignore Hotbar", Toggle.On,
-                new ConfigDescription("If on, the player's hotbar will not be stored when the Store Shortcut is pressed.", null, new ConfigurationManagerAttributes() { Order = 4 }), false);
-            PlayerIgnoreQuickSlots = config("1 - General", "Player Ignore Quick Slots", Toggle.Off,
-                new ConfigDescription("If on, the player's quick slots will not be stored when the Store Shortcut is pressed. (Requires Quick Slots mod, turn on only if you need it!)", null, new ConfigurationManagerAttributes() { Order = 3 }), false);
-            PingVfxString = TextEntryConfig("1 - General", "Ping VFX", "vfx_Potion_health_medium",
-                new ConfigDescription("The VFX to play when a chest is pinged. Leave blank to disable and only highlight the chest. (Full prefab list: https://valheim-modding.github.io/Jotunn/data/prefabs/prefab-list.html)", null, new ConfigurationManagerAttributes() { Order = 2 }));
-            HighlightContainers = config("1 - General", "Highlight Containers", Toggle.On,
-                new ConfigDescription("If on, the containers will be highlighted when something is stored in them. If off, the containers will not be highlighted if something is stored in them.", null, new ConfigurationManagerAttributes() { Order = 1 }), false);
-            PingContainers = config("1 - General", "Ping Containers", Toggle.On,
-                new ConfigDescription("If on, the containers will be pinged with the Ping VFX when something is stored in them. If off, the containers will not be pinged if something is stored in them.", null, new ConfigurationManagerAttributes() { Order = 0 }), false);
+            PlayerIgnoreHotbar = config("1 - General", "Player Ignore Hotbar", Toggle.On, new ConfigDescription("If on, the player's hotbar will not be stored when the Store Shortcut is pressed.", null, new ConfigurationManagerAttributes() { Order = 4 }), false);
+            PlayerIgnoreQuickSlots = config("1 - General", "Player Ignore Quick Slots", Toggle.Off, new ConfigDescription("If on, the player's quick slots will not be stored when the Store Shortcut is pressed. (Requires Quick Slots mod, turn on only if you need it!)", null, new ConfigurationManagerAttributes() { Order = 3 }), false);
+            PingVfxString = TextEntryConfig("1 - General", "Ping VFX", "vfx_Potion_health_medium", new ConfigDescription("The VFX to play when a chest is pinged. Leave blank to disable and only highlight the chest. (Full prefab list: https://valheim-modding.github.io/Jotunn/data/prefabs/prefab-list.html)", null, new ConfigurationManagerAttributes() { Order = 2 }));
+            HighlightContainers = config("1 - General", "Highlight Containers", Toggle.On, new ConfigDescription("If on, the containers will be highlighted when something is stored in them. If off, the containers will not be highlighted if something is stored in them.", null, new ConfigurationManagerAttributes() { Order = 1 }), false);
+            PingContainers = config("1 - General", "Ping Containers", Toggle.On, new ConfigDescription("If on, the containers will be pinged with the Ping VFX when something is stored in them. If off, the containers will not be pinged if something is stored in them.", null, new ConfigurationManagerAttributes() { Order = 0 }), false);
+            SecondsToWaitBeforeStoring = config("1 - General", "Seconds To Wait Before Storing", 10, new ConfigDescription("The number of seconds to wait before storing items into chests nearby automatically after you have pressed your hotkey to pause.", new AcceptableValueRange<int>(0, 60)));
+            IntervalSeconds = config("1 - General", nameof(IntervalSeconds), 10.0f, new ConfigDescription("The number of seconds that must pass before the chest will do an automatic check for items nearby, WARNING: Reducing this will decrease performance!"));
 
-            SecondsToWaitBeforeStoring = config("1 - General", "Seconds To Wait Before Storing", 10,
-                new ConfigDescription("The number of seconds to wait before storing items into chests nearby automatically after you have pressed your hotkey to pause.", new AcceptableValueRange<int>(0, 60)));
-            IntervalSeconds = config("1 - General", nameof(IntervalSeconds), 10.0f,
-                new ConfigDescription("The number of seconds that must pass before the chest will do an automatic check for items nearby, WARNING: Reducing this will decrease performance!"));
-
-            _storeShortcut = config("2 - Shortcuts", "Store Shortcut", new KeyboardShortcut(KeyCode.Period),
-                new ConfigDescription("Keyboard shortcut/Hotkey to store your inventory into nearby containers.", null, new ConfigurationManagerAttributes() { Order = 1 }), false);
-
-            _pauseShortcut = config("2 - Shortcuts", "Pause Shortcut", new KeyboardShortcut(KeyCode.Period, KeyCode.LeftShift),
-                "Keyboard shortcut/Hotkey to temporarily stop storing items into chests nearby automatically. Does not override the player hotkey store.", false);
+            _storeShortcut = config("2 - Shortcuts", "Store Shortcut", new KeyboardShortcut(KeyCode.Period), new ConfigDescription("Keyboard shortcut/Hotkey to store your inventory into nearby containers.", null, new ConfigurationManagerAttributes() { Order = 1 }), false);
+            _pauseShortcut = config("2 - Shortcuts", "Pause Shortcut", new KeyboardShortcut(KeyCode.Period, KeyCode.LeftShift), "Keyboard shortcut/Hotkey to temporarily stop storing items into chests nearby automatically. Does not override the player hotkey store.", false);
             SearchModifierKeybind = config("2 - Shortcuts", nameof(SearchModifierKeybind), new KeyboardShortcut(KeyCode.Y), $"While holding this, you can search nearby chests for the prefab you clicked in your inventory.", false);
 
             var sectionName = "3 - Favoriting";
@@ -120,7 +104,7 @@ namespace AzuAutoStore
 
         public void Start()
         {
-            BorderRenderer.border = loadSprite("border.png");
+            BorderRenderer.Border = loadSprite("border.png");
         }
 
         private void AutoDoc()

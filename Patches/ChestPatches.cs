@@ -20,7 +20,10 @@ internal static class ContainerAwakePatch
 
     private static void Postfix(Container __instance)
     {
-        if (__instance.m_nview.GetZDO() != null)
+        if (__instance.m_nview.GetZDO() == null)
+            return;
+
+        if (__instance.m_nview)
         {
             __instance.m_nview.Register<bool>("RequestPause", (sender, pause) => Boxes.RPC_RequestPause(sender, pause, __instance));
             __instance.m_nview.Register("Autostore Ownership", uid => Boxes.RPC_Ownership(__instance, uid));
@@ -135,9 +138,7 @@ internal static class ContainerOnDestroyedPatch
 {
     private static void Postfix(Container __instance)
     {
-        if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null ||
-            !__instance.m_nview.IsValid() ||
-            __instance.m_nview.GetZDO().GetLong("creator".GetStableHashCode()) == 0L)
+        if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null || !__instance.m_nview.IsValid())
             return;
         Boxes.RemoveContainer(__instance);
 

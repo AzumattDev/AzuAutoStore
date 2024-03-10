@@ -9,7 +9,9 @@ static class ItemDropStartPatch
 {
     static void Postfix(ItemDrop __instance)
     {
+#if DEBUG
         AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug("ItemDrop Start");
+#endif
         if (Boxes.Containers == null || __instance == null || __instance.transform == null)
         {
             return;
@@ -29,7 +31,9 @@ static class ItemDropStartPatch
             if (distance > Functions.GetContainerRange(container)) continue;
 
             ContainerAwakePatch.ItemDroppedNearby(container);
-            AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"ItemDrop s_instances count changed from {ContainerAwakePatch.lastCount} to {ItemDrop.s_instances.Count}");
+#if DEBUG
+   AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"ItemDrop s_instances count changed from {ContainerAwakePatch.lastCount} to {ItemDrop.s_instances.Count}");
+#endif
             ContainerAwakePatch.lastCount = ItemDrop.s_instances.Count;
         }
     }
