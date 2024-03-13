@@ -20,7 +20,7 @@ namespace AzuAutoStore
     public class AzuAutoStorePlugin : BaseUnityPlugin
     {
         internal const string ModName = "AzuAutoStore";
-        internal const string ModVersion = "2.1.5";
+        internal const string ModVersion = "2.1.6";
         internal const string Author = "Azumatt";
         internal const string ModGUID = $"{Author}.{ModName}";
         private static readonly string ConfigFileName = ModGUID + ".cfg";
@@ -82,8 +82,8 @@ namespace AzuAutoStore
 
             DisplayTooltipHint = config(sectionName, nameof(DisplayTooltipHint), true, "Whether to add additional info the item tooltip of a favorited or trash flagged item.", false);
 
-            FavoritingModifierKeybind1 = config(sectionName, nameof(FavoritingModifierKeybind1), new KeyboardShortcut(KeyCode.LeftAlt), $"{favoritingKey} Identical to {nameof(FavoritingModifierKeybind2)}.", false);
-            FavoritingModifierKeybind2 = config(sectionName, nameof(FavoritingModifierKeybind2), new KeyboardShortcut(KeyCode.RightAlt), $"{favoritingKey} Identical to {nameof(FavoritingModifierKeybind1)}.", false);
+            FavoritingModifierKeybind1 = config(sectionName, nameof(FavoritingModifierKeybind1), new KeyboardShortcut(KeyCode.Z), $"{favoritingKey} Identical to {nameof(FavoritingModifierKeybind2)}.", false);
+            FavoritingModifierKeybind2 = config(sectionName, nameof(FavoritingModifierKeybind2), new KeyboardShortcut(KeyCode.Z), $"{favoritingKey} Identical to {nameof(FavoritingModifierKeybind1)}.", false);
             FavoritedItemTooltip = config(sectionName, nameof(FavoritedItemTooltip), "Item is favorited and won't be stored", string.Empty, false);
             FavoritedSlotTooltip = config(sectionName, nameof(FavoritedSlotTooltip), "Slot is favorited and won't be stored", string.Empty, false);
             ItemOnFavoritedSlotTooltip = config(sectionName, nameof(ItemOnFavoritedSlotTooltip), "Item & Slot are favorited and won't be stored", string.Empty, false);
