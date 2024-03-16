@@ -47,7 +47,7 @@ static class TerminalInitTerminalPatch
                     float closestDistance = float.MaxValue;
                     foreach (Piece piece in GetNearbyMatchingPieces(query))
                     {
-                        Functions.PingContainer(piece);
+                        Functions.PingContainer(piece.gameObject);
                         found = true;
                         float distance = Vector3.Distance(piece.transform.position, Player.m_localPlayer.transform.position);
                         if (!(distance < closestDistance)) continue;

@@ -50,10 +50,7 @@ public class Functions
         return AzuAutoStorePlugin.FallbackRange.Value;
     }
 
-    private static bool CantStoreFavorite(ItemDrop.ItemData item, UserConfig playerConfig)
-    {
-        return playerConfig.IsItemNameOrSlotFavorited(item);
-    }
+ 
 
     internal static bool TryStore(Container nearbyContainer, ref ItemDrop.ItemData item, bool fromPlayer = false)
     {
@@ -85,69 +82,12 @@ public class Functions
         if (!changed) return changed;
         if (!fromPlayer)
         {
-            PingContainer(nearbyContainer);
+            PingContainer(nearbyContainer.gameObject);
         }
 
         nearbyContainer.Save();
 
         return changed;
-    }
-
-    internal static int TryStoreInContainer(Container nearbyContainer)
-    {
-        if (Player.m_localPlayer == null) return 0;
-
-        int total = 0;
-        List<ItemDrop.ItemData>? items = Player.m_localPlayer.GetInventory().GetAllItems();
-        for (int j = items.Count - 1; j >= 0; j--)
-        {
-            ItemDrop.ItemData? item = items[j];
-            if (item.m_equipped)
-            {
-                LogDebug($"Skipping equipped item {item.m_dropPrefab.name}");
-                continue;
-            }
-
-            // If the item.m_gridPos.x is 1-8 and item.m_gridPos.y is 0 (the first row), then do not store the item if _playerIgnoreHotbar is true
-            if (item.m_gridPos.x is >= 0 and <= 8 && item.m_gridPos.y == 0 &&
-                AzuAutoStorePlugin.PlayerIgnoreHotbar.Value == AzuAutoStorePlugin.Toggle.On)
-            {
-                LogDebug($"Skipping item {item.m_dropPrefab.name} because it is in the hotbar");
-                continue;
-            }
-
-            if (AzuExtendedPlayerInventory.API.IsLoaded())
-            {
-                // Get quick slot positions
-                List<ItemDrop.ItemData> quickSlotsItems = AzuExtendedPlayerInventory.API.GetQuickSlotsItems();
-
-
-                // Check if the item is in the quick slots
-                if (quickSlotsItems.Any(quickSlotItem => quickSlotItem.m_gridPos == item.m_gridPos))
-                {
-                    LogDebug($"Skipping item {item.m_dropPrefab.name} because it is in your quick slots");
-                    continue;
-                }
-            }
-
-            if (CantStoreFavorite(item, UserConfig.GetPlayerConfig(Player.m_localPlayer.GetPlayerID())))
-            {
-                LogDebug($"Skipping favorited item/slot {item.m_dropPrefab.name}");
-                continue;
-            }
-
-            LogDebug($"Checking item {item.m_dropPrefab.name}");
-            int originalAmount = item.m_stack;
-            if (!TryStore(nearbyContainer, ref item, true)) continue;
-            if (item.m_stack >= originalAmount) continue;
-            total += originalAmount - item.m_stack;
-            Player.m_localPlayer.GetInventory().RemoveItem(item, originalAmount - item.m_stack);
-            LogDebug($"Stored {originalAmount - item.m_stack} {item.m_dropPrefab.name} into {nearbyContainer.name}");
-            if (Boxes.ContainersToPing.Contains(nearbyContainer)) continue;
-            Boxes.ContainersToPing.Add(nearbyContainer);
-        }
-
-        return total;
     }
 
     internal static int InProgressStores = 0;
@@ -159,18 +99,18 @@ public class Functions
         LogDebug("Trying to store items from player inventory");
         // Check all items in the player inventory where the items are not equipped
 
-        Container?[] uncheckedContainers = Boxes.GetNearbyContainers(Player.m_localPlayer, AzuAutoStorePlugin.PlayerRange.Value).ToArray();
+        IContainer?[] uncheckedContainers = Boxes.GetNearbyContainers(Player.m_localPlayer, AzuAutoStorePlugin.PlayerRange.Value).ToArray();
 
         int total = 0;
         for (int i = 0; i < uncheckedContainers.Length; ++i)
         {
-            if (uncheckedContainers[i] is not { } nearbyContainer || !nearbyContainer.m_nview.IsOwner())
+            if (uncheckedContainers[i] is not { } nearbyContainer || !nearbyContainer.IsOwner())
             {
                 continue;
             }
 
             uncheckedContainers[i] = null;
-            total += TryStoreInContainer(nearbyContainer);
+            total += nearbyContainer.TryStore();
         }
 
         if (InProgressStores > 0)
@@ -217,9 +157,9 @@ public class Functions
         {
             InProgressTotal = 0;
             Player.m_localPlayer.Message(MessageHud.MessageType.Center, $"Stored {total} items from your inventory into nearby containers");
-            foreach (Container c in Boxes.ContainersToPing)
+            foreach (IContainer c in Boxes.ContainersToPing)
             {
-                PingContainer(c);
+                PingContainer(c.gameObject);
             }
 
             Boxes.ContainersToPing.Clear();
@@ -227,13 +167,13 @@ public class Functions
     }
 
 
-    internal static void PingContainer(Component container)
+    internal static void PingContainer(GameObject container)
     {
-        if (AzuAutoStorePlugin.PingContainers.Value == AzuAutoStorePlugin.Toggle.On && container.gameObject.GetComponent<ChestPingEffect>() == null)
-            container.gameObject.AddComponent<ChestPingEffect>();
+        if (AzuAutoStorePlugin.PingContainers.Value == AzuAutoStorePlugin.Toggle.On && container.GetComponent<ChestPingEffect>() == null)
+            container.AddComponent<ChestPingEffect>();
 
-        if (AzuAutoStorePlugin.HighlightContainers.Value == AzuAutoStorePlugin.Toggle.On && container.gameObject.GetComponent<HighLightChest>() == null)
-            container.gameObject.AddComponent<HighLightChest>();
+        if (AzuAutoStorePlugin.HighlightContainers.Value == AzuAutoStorePlugin.Toggle.On && container.GetComponent<HighLightChest>() == null)
+            container.AddComponent<HighLightChest>();
     }
 
 
