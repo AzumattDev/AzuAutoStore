@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AzuAutoStore.APIs;
 using UnityEngine;
 
 namespace AzuAutoStore.Util;
@@ -10,7 +11,7 @@ public class Boxes
     internal static readonly List<Container> Containers = new();
     private static readonly List<Container> ContainersToAdd = new();
     private static readonly List<Container> ContainersToRemove = new();
-    internal static readonly List<Container> ContainersToPing = new();
+    internal static readonly List<IContainer> ContainersToPing = new();
     internal static bool StoringPaused;
 
     internal static void AddContainer(Container container)
@@ -51,9 +52,9 @@ public class Boxes
         ContainersToRemove.Clear();
     }
 
-    internal static List<Container> GetNearbyContainers<T>(T gameObject, float rangeToUse) where T : Component
+    internal static List<IContainer> GetNearbyContainers<T>(T gameObject, float rangeToUse) where T : Component
     {
-        List<Container> nearbyContainers = new();
+        List<IContainer> nearbyContainers = new();
         foreach (Container container in Containers)
         {
             if (gameObject == null || container == null) continue;
@@ -61,10 +62,12 @@ public class Boxes
             if (!(distance <= rangeToUse)) continue;
             // log the distance and the range to use
             AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Distance to container {container.name} is {distance}m, within the range of {rangeToUse}m set to store items for this chest");
-            nearbyContainers.Add(container);
+            nearbyContainers.Add(VanillaContainers.Create(container));
         }
+        
+        List<IContainer> drawers = ItemDrawers_API.AllDrawers.Select(drawer => (IContainer)kgDrawer.Create(drawer)).ToList();
 
-        return nearbyContainers;
+        return nearbyContainers.Concat(drawers).ToList();
     }
 
 
@@ -244,7 +247,7 @@ public class Boxes
     {
         if (response)
         {
-            Functions.InProgressTotal += Functions.TryStoreInContainer(container);
+            Functions.InProgressTotal += VanillaContainers.Create(container).TryStore();
         }
 
         if (--Functions.InProgressStores == 0)
