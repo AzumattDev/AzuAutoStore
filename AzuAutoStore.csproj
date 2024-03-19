@@ -117,7 +117,11 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Patches\ChestPatches.cs"/>
+        <Compile Include="APIs\kg_ItemDrawersAPI.cs" />
+        <Compile Include="IContainers\IContainer.cs" />
+        <Compile Include="IContainers\kgDrawers.cs" />
+        <Compile Include="IContainers\VanillaContainers.cs" />
+        <Compile Include="Patches\ChestPatches.cs" />
         <Compile Include="Patches\Commands.cs" />
         <Compile Include="Patches\Favoriting\BorderRenderer.cs" />
         <Compile Include="Patches\Favoriting\ButtonRenderer.cs" />

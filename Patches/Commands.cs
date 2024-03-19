@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AzuAutoStore.APIs;
 using AzuAutoStore.Util;
 using HarmonyLib;
 using UnityEngine;
@@ -43,13 +44,13 @@ static class TerminalInitTerminalPatch
                 bool SearchNearbyContainersFor(string query)
                 {
                     bool found = false;
-                    Piece closestPiece = null!;
+                    IContainer closestPiece = null!;
                     float closestDistance = float.MaxValue;
-                    foreach (Piece piece in GetNearbyMatchingPieces(query))
+                    foreach (IContainer piece in GetNearbyMatchingPieces(query))
                     {
                         Functions.PingContainer(piece.gameObject);
                         found = true;
-                        float distance = Vector3.Distance(piece.transform.position, Player.m_localPlayer.transform.position);
+                        float distance = Vector3.Distance(piece.gameObject.transform.position, Player.m_localPlayer.transform.position);
                         if (!(distance < closestDistance)) continue;
                         closestDistance = distance;
                         closestPiece = piece;
@@ -57,14 +58,14 @@ static class TerminalInitTerminalPatch
 
                     if (closestPiece != null)
                     {
-                        Vector3 pos = closestPiece.transform.position;
+                        Vector3 pos = closestPiece.gameObject.transform.position;
                         Player.m_localPlayer.SetLookDir(pos - Player.m_localPlayer.transform.position, 3.5f);
                     }
 
                     return found;
                 }
 
-                IEnumerable<Piece> GetNearbyMatchingPieces(string query)
+                IEnumerable<IContainer> GetNearbyMatchingPieces(string query)
                 {
                     List<Piece> pieces = new();
 
@@ -74,9 +75,11 @@ static class TerminalInitTerminalPatch
                         pieces
                     );
 
+                    IEnumerable<IContainer> drawersCheck = APIs.ItemDrawers_API.AllDrawers.Where(x => x.Prefab.ToLower() == query.ToLower()).Select(x => kgDrawer.Create(x));
+                    
                     return pieces
                         .Where(p => p.GetComponent<Container>())
-                        .Where(p => ContainerContainsMatchingItem(p, query.ToLower(), ref itemCount));
+                        .Where(p => ContainerContainsMatchingItem(p, query.ToLower(), ref itemCount)).Select(p => VanillaContainers.Create(p.GetComponent<Container>())).Concat(drawersCheck);
                 }
 
                 static bool ContainerContainsMatchingItem(Component container, string query, ref int count)
