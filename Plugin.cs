@@ -20,7 +20,7 @@ namespace AzuAutoStore
     public class AzuAutoStorePlugin : BaseUnityPlugin
     {
         internal const string ModName = "AzuAutoStore";
-        internal const string ModVersion = "2.1.7";
+        internal const string ModVersion = "2.1.8";
         internal const string Author = "Azumatt";
         internal const string ModGUID = $"{Author}.{ModName}";
         private static readonly string ConfigFileName = ModGUID + ".cfg";
@@ -64,6 +64,7 @@ namespace AzuAutoStore
             SecondsToWaitBeforeStoring = config("1 - General", "Seconds To Wait Before Storing", 10, new ConfigDescription("The number of seconds to wait before storing items into chests nearby automatically after you have pressed your hotkey to pause.", new AcceptableValueRange<int>(0, 60)));
             IntervalSeconds = config("1 - General", nameof(IntervalSeconds), 10.0f, new ConfigDescription("The number of seconds that must pass before the chest will do an automatic check for items nearby, WARNING: Reducing this will decrease performance!"));
 
+            SingleItemShortcut = config("2 - Shortcuts", "Store Single Item Shortcut", new KeyboardShortcut(KeyCode.Mouse2), new ConfigDescription("Keyboard shortcut/Hotkey to store a single item that you click from your inventory into nearby containers.", null, new ConfigurationManagerAttributes() { Order = 2 }), false);
             _storeShortcut = config("2 - Shortcuts", "Store Shortcut", new KeyboardShortcut(KeyCode.Period), new ConfigDescription("Keyboard shortcut/Hotkey to store your inventory into nearby containers.", null, new ConfigurationManagerAttributes() { Order = 1 }), false);
             _pauseShortcut = config("2 - Shortcuts", "Pause Shortcut", new KeyboardShortcut(KeyCode.Period, KeyCode.LeftShift), "Keyboard shortcut/Hotkey to temporarily stop storing items into chests nearby automatically. Does not override the player hotkey store.", false);
             SearchModifierKeybind = config("2 - Shortcuts", nameof(SearchModifierKeybind), new KeyboardShortcut(KeyCode.Y), $"While holding this, you can search nearby chests for the prefab you clicked in your inventory.", false);
@@ -276,6 +277,7 @@ namespace AzuAutoStore
 
         private static ConfigEntry<Toggle> _serverConfigLocked = null!;
         internal static ConfigEntry<Toggle> MustHaveExistingItemToPull = null!;
+        internal static ConfigEntry<KeyboardShortcut> SingleItemShortcut = null!;
         private static ConfigEntry<KeyboardShortcut> _storeShortcut = null!;
         private static ConfigEntry<KeyboardShortcut> _pauseShortcut = null!;
         internal static ConfigEntry<int> SecondsToWaitBeforeStoring = null!;

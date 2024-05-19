@@ -109,8 +109,7 @@ public class Functions
             }
 
             // If the item.m_gridPos.x is 1-8 and item.m_gridPos.y is 0 (the first row), then do not store the item if _playerIgnoreHotbar is true
-            if (item.m_gridPos.x is >= 0 and <= 8 && item.m_gridPos.y == 0 &&
-                AzuAutoStorePlugin.PlayerIgnoreHotbar.Value == AzuAutoStorePlugin.Toggle.On)
+            if (item.m_gridPos.x is >= 0 and <= 8 && item.m_gridPos.y == 0 && AzuAutoStorePlugin.PlayerIgnoreHotbar.Value == AzuAutoStorePlugin.Toggle.On)
             {
                 LogDebug($"Skipping item {item.m_dropPrefab.name} because it is in the hotbar");
                 continue;
@@ -208,6 +207,73 @@ public class Functions
         else
         {
             StoreSuccess(total);
+        }
+    }
+
+    internal static void TryStoreThisItem(ItemDrop.ItemData itemData, Inventory m_inventory)
+    {
+        if (Player.m_localPlayer == null) return;
+        LogDebug($"Trying to store {itemData.m_dropPrefab.name} from player inventory");
+        Container?[] uncheckedContainers = Boxes.GetNearbyContainers(Player.m_localPlayer, AzuAutoStorePlugin.PlayerRange.Value).ToArray();
+
+        int total = 0;
+        for (int i = 0; i < uncheckedContainers.Length; ++i)
+        {
+            if (uncheckedContainers[i] is not { } nearbyContainer || !nearbyContainer.m_nview.IsOwner())
+            {
+                continue;
+            }
+
+            uncheckedContainers[i] = null;
+            if (TryStore(nearbyContainer, ref itemData, true))
+            {
+                if (!Boxes.ContainersToPing.Contains(nearbyContainer))
+                {
+                    Boxes.ContainersToPing.Add(nearbyContainer);
+                }
+
+                total++;
+            }
+        }
+
+        if (InProgressStores > 0)
+        {
+            LogDebug($"Found {InProgressStores} requests for container ownership still pending...");
+            InProgressTotal += total;
+            return;
+        }
+
+        InProgressStores = uncheckedContainers.Count(c => c is not null);
+        if (InProgressStores > 0)
+        {
+            InProgressTotal = total;
+
+            IEnumerator End()
+            {
+                yield return new WaitForSeconds(1);
+                StoreSuccess(InProgressTotal);
+                InProgressStores = 0;
+            }
+
+            AzuAutoStorePlugin.self.StartCoroutine(End());
+
+            foreach (Container? nearbyContainer in uncheckedContainers)
+            {
+                // prevent claiming ownership of other players (e.g. through adventure backpacks)
+                Player? player = nearbyContainer?.m_nview.GetComponent<Player>();
+
+                if (!player || player == Player.m_localPlayer)
+                {
+                    nearbyContainer?.m_nview.InvokeRPC("Autostore Ownership");
+                }
+            }
+        }
+        else
+        {
+            total = itemData.m_stack;
+            StoreSuccess(total);
+            // Remove item from inventory
+            m_inventory.RemoveItem(itemData, itemData.m_stack);
         }
     }
 
