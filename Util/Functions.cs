@@ -55,13 +55,19 @@ public class Functions
         return playerConfig.IsItemNameOrSlotFavorited(item);
     }
 
-    internal static bool TryStore(Container nearbyContainer, ref ItemDrop.ItemData item, bool fromPlayer = false)
+    internal static bool TryStore(Container nearbyContainer, ref ItemDrop.ItemData item, bool fromPlayer = false, bool singleItemData = false)
     {
         bool changed = false;
         LogDebug($"Checking container {nearbyContainer.name}");
         if (!MiscFunctions.CheckItemSharedIntegrity(item)) return changed;
         if (AzuAutoStorePlugin.MustHaveExistingItemToPull.Value == AzuAutoStorePlugin.Toggle.On && !nearbyContainer.GetInventory().HaveItem(item.m_shared.m_name))
+        {
+            if (!singleItemData) return false;
+            LogDebug($"Skipping {item.m_dropPrefab.name} because it is not in the container");
+            Player.m_localPlayer.Message(MessageHud.MessageType.Center, $"<color=red>{item.m_shared.m_name} is not in nearby containers</color>");
             return false;
+        }
+
         if (!Boxes.CanItemBeStored(MiscFunctions.GetPrefabName(nearbyContainer.transform.root.name), item.m_dropPrefab.name)) return false;
 
         LogDebug($"Auto storing {item.m_dropPrefab.name} in {nearbyContainer.name}");
@@ -93,12 +99,12 @@ public class Functions
         return changed;
     }
 
-    internal static int TryStoreInContainer(Container nearbyContainer)
+    internal static int TryStoreInContainer(Container nearbyContainer, ItemDrop.ItemData? singleItemData = null, Inventory? playerInventory = null)
     {
         if (Player.m_localPlayer == null) return 0;
-
+        Inventory? inventory = playerInventory ?? Player.m_localPlayer.GetInventory();
         int total = 0;
-        List<ItemDrop.ItemData>? items = Player.m_localPlayer.GetInventory().GetAllItems();
+        List<ItemDrop.ItemData>? items = singleItemData == null ? inventory.GetAllItems() : [singleItemData];
         for (int j = items.Count - 1; j >= 0; j--)
         {
             ItemDrop.ItemData? item = items[j];
@@ -137,10 +143,10 @@ public class Functions
 
             LogDebug($"Checking item {item.m_dropPrefab.name}");
             int originalAmount = item.m_stack;
-            if (!TryStore(nearbyContainer, ref item, true)) continue;
+            if (!TryStore(nearbyContainer, ref item, true, singleItemData != null)) continue;
             if (item.m_stack >= originalAmount) continue;
             total += originalAmount - item.m_stack;
-            Player.m_localPlayer.GetInventory().RemoveItem(item, originalAmount - item.m_stack);
+            inventory.RemoveItem(item, originalAmount - item.m_stack);
             LogDebug($"Stored {originalAmount - item.m_stack} {item.m_dropPrefab.name} into {nearbyContainer.name}");
             if (Boxes.ContainersToPing.Contains(nearbyContainer)) continue;
             Boxes.ContainersToPing.Add(nearbyContainer);
@@ -213,7 +219,9 @@ public class Functions
     internal static void TryStoreThisItem(ItemDrop.ItemData itemData, Inventory m_inventory)
     {
         if (Player.m_localPlayer == null) return;
-        LogDebug($"Trying to store {itemData.m_dropPrefab.name} from player inventory");
+        LogDebug($"Trying to store {itemData.m_shared.m_name} from player inventory");
+        // Check all items in the player inventory where the items are not equipped
+
         Container?[] uncheckedContainers = Boxes.GetNearbyContainers(Player.m_localPlayer, AzuAutoStorePlugin.PlayerRange.Value).ToArray();
 
         int total = 0;
@@ -225,15 +233,7 @@ public class Functions
             }
 
             uncheckedContainers[i] = null;
-            if (TryStore(nearbyContainer, ref itemData, true))
-            {
-                if (!Boxes.ContainersToPing.Contains(nearbyContainer))
-                {
-                    Boxes.ContainersToPing.Add(nearbyContainer);
-                }
-
-                total++;
-            }
+            total += TryStoreInContainer(nearbyContainer, itemData, m_inventory);
         }
 
         if (InProgressStores > 0)
@@ -270,10 +270,7 @@ public class Functions
         }
         else
         {
-            total = itemData.m_stack;
             StoreSuccess(total);
-            // Remove item from inventory
-            m_inventory.RemoveItem(itemData, itemData.m_stack);
         }
     }
 
