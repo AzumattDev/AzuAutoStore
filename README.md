@@ -49,7 +49,7 @@ Lock Configuration [Synced with Server]
 Must Have Existing Item To Pull [Synced with Server]
 
 * If on, the chest must already have the item in its inventory to pull it from the world or player into the chest.
-    * Default Value: Off
+    * Default Value: On
 
 Player Range [Synced with Server]
 
@@ -86,13 +86,30 @@ Highlight Containers [Not Synced with Server]
   highlighted if something is stored in them.
     * Default Value: On
 
+Ping Containers [Not Synced with Server]
+
+* If on, the containers will be pinged with the Ping VFX when something is stored in them. If off, the containers will
+  not be pinged if something is stored in them.
+    * Default Value: On
+
 Seconds To Wait Before Storing [Synced with Server]
 
 * The number of seconds to wait before storing items into chests nearby automatically after you have pressed your hotkey
   to pause.
     * Default Value: 10
 
+IntervalSeconds [Synced with Server]
+
+* The number of seconds that must pass before the chest will do an automatic check for items nearby, WARNING: Reducing
+  this will decrease performance!
+    * Default Value: 10
+
 `2 - Shortcuts`
+
+Store Single Item Shortcut [Not Synced with Server]
+
+* Keyboard shortcut/Hotkey to store a single item that you click from your inventory into nearby containers.
+    * Default Value: Mouse2
 
 Store Shortcut [Not Synced with Server]
 
@@ -103,7 +120,61 @@ Pause Shortcut [Not Synced with Server]
 
 * Keyboard shortcut/Hotkey to temporarily stop storing items into chests nearby automatically. Does not override the
   player hotkey store.
-    * Default Value: LeftShift + Period
+    * Default Value: Period + LeftShift
+
+SearchModifierKeybind [Not Synced with Server]
+
+* While holding this, you can search nearby chests for the prefab you clicked in your inventory.
+    * Default Value: Y
+
+`3 - Favoriting`
+
+BorderColorFavoritedItem [Not Synced with Server]
+
+* Color of the border for slots containing favorited items.
+    * Default Value: FFD800FF
+
+BorderColorFavoritedItemOnFavoritedSlot [Not Synced with Server]
+
+* Color of the border of a favorited slot that also contains a favorited item.
+    * Default Value: 80AC80FF
+
+BorderColorFavoritedSlot [Not Synced with Server]
+
+* Color of the border for favorited slots.
+    * Default Value: 0080FFFF
+
+DisplayTooltipHint [Not Synced with Server]
+
+* Whether to add additional info the item tooltip of a favorited or trash flagged item.
+    * Default Value: true
+
+FavoritingModifierKeybind1 [Not Synced with Server]
+
+* While holding this, left clicking on items or right clicking on slots favorites them, disallowing storing Identical to
+  FavoritingModifierKeybind2.
+    * Default Value: Z
+
+FavoritingModifierKeybind2 [Not Synced with Server]
+
+* While holding this, left clicking on items or right clicking on slots favorites them, disallowing storing Identical to
+  FavoritingModifierKeybind1.
+    * Default Value: Z
+
+FavoritedItemTooltip [Not Synced with Server]
+
+*
+    * Default Value: Item is favorited and won't be stored
+
+FavoritedSlotTooltip [Not Synced with Server]
+
+*
+    * Default Value: Slot is favorited and won't be stored
+
+ItemOnFavoritedSlotTooltip [Not Synced with Server]
+
+*
+    * Default Value: Item & Slot are favorited and won't be stored
 
 </details>
 

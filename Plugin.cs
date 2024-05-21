@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+#if DEBUG
+using System.Text;
+using System.Text.RegularExpressions;
+#endif
 using AzuAutoStore.Patches.Favoriting;
 using AzuAutoStore.Util;
 using BepInEx;
@@ -20,7 +24,7 @@ namespace AzuAutoStore
     public class AzuAutoStorePlugin : BaseUnityPlugin
     {
         internal const string ModName = "AzuAutoStore";
-        internal const string ModVersion = "2.1.9";
+        internal const string ModVersion = "2.1.10";
         internal const string Author = "Azumatt";
         internal const string ModGUID = $"{Author}.{ModName}";
         private static readonly string ConfigFileName = ModGUID + ".cfg";
@@ -357,9 +361,9 @@ namespace AzuAutoStore
         private class ConfigurationManagerAttributes
         {
             [UsedImplicitly] public int? Order = null!;
-            [UsedImplicitly] public bool? Browsable  = null!;
-            [UsedImplicitly] public string Category  = null!;
-            [UsedImplicitly] public Action<ConfigEntryBase>? CustomDrawer  = null!;
+            [UsedImplicitly] public bool? Browsable = null!;
+            [UsedImplicitly] public string Category = null!;
+            [UsedImplicitly] public Action<ConfigEntryBase>? CustomDrawer = null!;
         }
 
         class AcceptableShortcuts : AcceptableValueBase
