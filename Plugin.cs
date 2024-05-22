@@ -24,7 +24,7 @@ namespace AzuAutoStore
     public class AzuAutoStorePlugin : BaseUnityPlugin
     {
         internal const string ModName = "AzuAutoStore";
-        internal const string ModVersion = "2.1.10";
+        internal const string ModVersion = "2.1.11";
         internal const string Author = "Azumatt";
         internal const string ModGUID = $"{Author}.{ModName}";
         private static readonly string ConfigFileName = ModGUID + ".cfg";

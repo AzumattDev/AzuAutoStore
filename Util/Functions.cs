@@ -62,9 +62,12 @@ public class Functions
         if (!MiscFunctions.CheckItemSharedIntegrity(item)) return changed;
         if (AzuAutoStorePlugin.MustHaveExistingItemToPull.Value == AzuAutoStorePlugin.Toggle.On && !nearbyContainer.GetInventory().HaveItem(item.m_shared.m_name))
         {
-            if (!singleItemData) return false;
-            LogDebug($"Skipping {item.m_dropPrefab.name} because it is not in the container");
-            Player.m_localPlayer.Message(MessageHud.MessageType.Center, $"<color=red>{item.m_shared.m_name} is not in nearby containers</color>");
+            if (singleItemData)
+            {
+                LogDebug($"Skipping {item.m_dropPrefab.name} because it is not in the container");
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, $"<color=red>{item.m_shared.m_name} is not in nearby containers</color>");
+            }
+
             return false;
         }
 
@@ -175,7 +178,7 @@ public class Functions
             }
 
             uncheckedContainers[i] = null;
-            total += TryStoreInContainer(nearbyContainer);
+            total += TryStoreInContainer(nearbyContainer, null, null);
         }
 
         if (InProgressStores > 0)

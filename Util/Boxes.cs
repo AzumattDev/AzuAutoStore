@@ -244,7 +244,7 @@ public class Boxes
     {
         if (response)
         {
-            Functions.InProgressTotal += Functions.TryStoreInContainer(container);
+            Functions.InProgressTotal += Functions.TryStoreInContainer(container, null, null);
         }
 
         if (--Functions.InProgressStores == 0)
