@@ -107,7 +107,7 @@ static class PlayerUpdateTeleportPatch
             return;
         foreach (Container container in Boxes.Containers.ToList())
         {
-            if (container != null && container.transform != null && container.GetInventory() != null)
+            if (container == null || container.transform == null || container.GetInventory() == null)
             {
                 if (!Boxes.Containers.Contains(container))
                     continue;
