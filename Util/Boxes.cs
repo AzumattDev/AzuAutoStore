@@ -70,7 +70,7 @@ public class Boxes
 
         IEnumerable<IContainer> backpacksEnumerable = new List<IContainer>();
         List<IContainer> backpackList = [];
-        if (AzuAutoStorePlugin.BackpacksIsLoaded)
+        if (AzuAutoStorePlugin.BackpacksIsLoaded && AzuAutoStorePlugin.DontStoreToBackpacks.Value == AzuAutoStorePlugin.Toggle.Off)
         {
             // Get all backpacks in the player inventory
             foreach (ItemDrop.ItemData? allItem in Player.m_localPlayer.GetInventory().GetAllItems().Where(x => x?.Data(AzuAutoStorePlugin.BackpacksGuid)?.Get<ItemContainer>() != null))

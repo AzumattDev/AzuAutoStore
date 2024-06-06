@@ -195,7 +195,6 @@ public class BackpackContainer(ItemContainer _container) : IContainer
             item.m_stack--;
             ItemDrop.ItemData newItem = item.Clone();
             newItem.m_stack = 1;
-            nearbyContainer.Inventory.AddItem(newItem);
             Backpacks.API.AddItemToBackpack(nearbyContainer.Item, newItem);
         }
 
@@ -213,7 +212,7 @@ public class BackpackContainer(ItemContainer _container) : IContainer
             Functions.PingContainer(Player.m_localPlayer.gameObject);
         }
 
-        nearbyContainer.Save();
+        try {nearbyContainer.Save();} catch {}
 
         return changed;
     }
@@ -223,6 +222,6 @@ public class BackpackContainer(ItemContainer _container) : IContainer
         return true;
     }
 
-    public GameObject gameObject { get; set; }
+    public GameObject gameObject => Player.m_localPlayer.gameObject;
     public static BackpackContainer Create(ItemContainer container) => new(container);
 }

@@ -235,6 +235,7 @@ public class Functions
 
     internal static void PingContainer(GameObject container)
     {
+        if (container == null) return;
         if (AzuAutoStorePlugin.PingContainers.Value == AzuAutoStorePlugin.Toggle.On && container.GetComponent<ChestPingEffect>() == null)
             container.AddComponent<ChestPingEffect>();
 
