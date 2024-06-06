@@ -29,7 +29,7 @@ static class ItemDropStartPatch
 
             float distance = Vector3.Distance(container.transform.position, __instance.transform.position);
             if (distance > Functions.GetContainerRange(container)) continue;
-
+            
             ContainerAwakePatch.ItemDroppedNearby(container);
 #if DEBUG
    AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"ItemDrop s_instances count changed from {ContainerAwakePatch.lastCount} to {ItemDrop.s_instances.Count}");

@@ -68,7 +68,7 @@ public class BackpackContainer(ItemContainer _container) : IContainer
             if (item.m_stack >= originalAmount) continue;
             total += originalAmount - item.m_stack;
             Player.m_localPlayer.GetInventory().RemoveItem(item, originalAmount - item.m_stack);
-            LogDebug($"Stored {originalAmount - item.m_stack} {item.m_dropPrefab.name} into {_container.name}");
+            LogDebug($"Stored {originalAmount - item.m_stack} {item.m_dropPrefab.name} into {_container.Item.m_dropPrefab.name}");
             if (Boxes.ContainersToPing.Contains(this)) continue;
             Boxes.ContainersToPing.Add(this);
         }
@@ -120,11 +120,11 @@ public class BackpackContainer(ItemContainer _container) : IContainer
 
             LogDebug($"Checking item {item.m_dropPrefab.name}");
             int originalAmount = item.m_stack;
-            if (!Functions.TryStore(_container, ref item, true, singleItemData != null)) continue;
+            if (!TryStore(_container, ref item, true, singleItemData != null)) continue;
             if (item.m_stack >= originalAmount) continue;
             total += originalAmount - item.m_stack;
             inventory.RemoveItem(item, originalAmount - item.m_stack);
-            LogDebug($"Stored {originalAmount - item.m_stack} {item.m_dropPrefab.name} into {_container.name}");
+            LogDebug($"Stored {originalAmount - item.m_stack} {item.m_dropPrefab.name} into {_container.Item.m_dropPrefab.name}");
             if (Boxes.ContainersToPing.Contains(this)) continue;
             Boxes.ContainersToPing.Add(this);
         }
@@ -132,37 +132,85 @@ public class BackpackContainer(ItemContainer _container) : IContainer
         return total;
     }
 
-    internal bool TryStore(Container nearbyContainer, ref ItemDrop.ItemData item, bool fromPlayer = false)
+    internal bool TryStore(ItemContainer nearbyContainer, ref ItemDrop.ItemData item, bool fromPlayer = false)
     {
         bool changed = false;
-        LogDebug($"Checking container {nearbyContainer.name}");
+        LogDebug($"Checking container {nearbyContainer.Item.m_dropPrefab.name}");
         if (!MiscFunctions.CheckItemSharedIntegrity(item)) return changed;
-        if (AzuAutoStorePlugin.MustHaveExistingItemToPull.Value == AzuAutoStorePlugin.Toggle.On && !nearbyContainer.GetInventory().HaveItem(item.m_shared.m_name))
+        if (AzuAutoStorePlugin.MustHaveExistingItemToPull.Value == AzuAutoStorePlugin.Toggle.On && !nearbyContainer.Inventory.HaveItem(item.m_shared.m_name))
             return false;
-        if (!Boxes.CanItemBeStored(MiscFunctions.GetPrefabName(nearbyContainer.transform.root.name), item.m_dropPrefab.name)) return false;
+        if (!Boxes.CanItemBeStored(MiscFunctions.GetPrefabName(nearbyContainer.Item.m_dropPrefab.name), item.m_dropPrefab.name)) return false;
 
-        LogDebug($"Auto storing {item.m_dropPrefab.name} in {nearbyContainer.name}");
-        while (item.m_stack > 1 && nearbyContainer.GetInventory().CanAddItem(item, 1))
+        LogDebug($"Auto storing {item.m_dropPrefab.name} in {nearbyContainer.Item.m_dropPrefab.name}");
+        while (item.m_stack > 1 && nearbyContainer.CanAddItem(item))
         {
             changed = true;
             item.m_stack--;
             ItemDrop.ItemData newItem = item.Clone();
             newItem.m_stack = 1;
-            nearbyContainer.GetInventory().AddItem(newItem);
+            Backpacks.API.AddItemToBackpack(_container.Item, newItem);
         }
 
-        if (item.m_stack == 1 && nearbyContainer.GetInventory().CanAddItem(item, 1))
+        if (item.m_stack == 1 && nearbyContainer.CanAddItem(item))
         {
             ItemDrop.ItemData newItem = item.Clone();
             item.m_stack = 0;
-            nearbyContainer.GetInventory().AddItem(newItem);
+            Backpacks.API.AddItemToBackpack(_container.Item, newItem);
             changed = true;
         }
 
         if (!changed) return changed;
         if (!fromPlayer)
         {
-            Functions.PingContainer(_container.gameObject);
+            Functions.PingContainer(Player.m_localPlayer.gameObject);
+        }
+
+        nearbyContainer.Save();
+
+        return changed;
+    }
+
+    internal static bool TryStore(ItemContainer nearbyContainer, ref ItemDrop.ItemData item, bool fromPlayer = false, bool singleItemData = false)
+    {
+        bool changed = false;
+        LogDebug($"Checking container {nearbyContainer.Item.m_dropPrefab.name}");
+        if (!MiscFunctions.CheckItemSharedIntegrity(item)) return changed;
+        if (AzuAutoStorePlugin.MustHaveExistingItemToPull.Value == AzuAutoStorePlugin.Toggle.On && !nearbyContainer.Inventory.HaveItem(item.m_shared.m_name))
+        {
+            if (singleItemData)
+            {
+                LogDebug($"Skipping {item.m_dropPrefab.name} because it is not in the container");
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, $"<color=red>{item.m_shared.m_name} is not in nearby containers</color>");
+            }
+
+            return false;
+        }
+
+        if (!Boxes.CanItemBeStored(MiscFunctions.GetPrefabName(nearbyContainer.Item.m_dropPrefab.name), item.m_dropPrefab.name)) return false;
+
+        LogDebug($"Auto storing {item.m_dropPrefab.name} in {nearbyContainer.Item.m_dropPrefab.name}");
+        while (item.m_stack > 1 && nearbyContainer.Inventory.CanAddItem(item, 1))
+        {
+            changed = true;
+            item.m_stack--;
+            ItemDrop.ItemData newItem = item.Clone();
+            newItem.m_stack = 1;
+            nearbyContainer.Inventory.AddItem(newItem);
+            Backpacks.API.AddItemToBackpack(nearbyContainer.Item, newItem);
+        }
+
+        if (item.m_stack == 1 && nearbyContainer.Inventory.CanAddItem(item, 1))
+        {
+            ItemDrop.ItemData newItem = item.Clone();
+            item.m_stack = 0;
+            Backpacks.API.AddItemToBackpack(nearbyContainer.Item, newItem);
+            changed = true;
+        }
+
+        if (!changed) return changed;
+        if (!fromPlayer)
+        {
+            Functions.PingContainer(Player.m_localPlayer.gameObject);
         }
 
         nearbyContainer.Save();

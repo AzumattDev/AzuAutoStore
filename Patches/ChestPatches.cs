@@ -55,6 +55,7 @@ internal static class ContainerAwakePatch
         {
         }
 
+        if (AzuAutoStorePlugin.ChestsPickupFromGround.Value == AzuAutoStorePlugin.Toggle.Off) return;
         Coroutine newCoroutine = __instance.StartCoroutine(PeriodicCheck(__instance));
         containerCoroutines[__instance] = newCoroutine;
     }
@@ -123,6 +124,7 @@ internal static class ContainerAwakePatch
 
     public static void ItemDroppedNearby(Container containerInstance)
     {
+        if (AzuAutoStorePlugin.ChestsPickupFromGround.Value == AzuAutoStorePlugin.Toggle.Off) return;
         if (containerCoroutines == null) return;
         if (!containerInstance || !containerCoroutines.TryGetValue(containerInstance, out Coroutine? existingCoroutine)) return;
         if (existingCoroutine == null) return;
@@ -135,6 +137,16 @@ internal static class ContainerAwakePatch
             containerCoroutines[containerInstance] = newCoroutine;
         }
     }
+
+    public static void TryStopCoroutine(Container containerInstance)
+    {
+        if (containerCoroutines == null) return;
+        if (!containerInstance || !containerCoroutines.TryGetValue(containerInstance, out Coroutine? existingCoroutine)) return;
+        if (existingCoroutine == null) return;
+
+        containerInstance.StopCoroutine(existingCoroutine);
+        containerCoroutines.Remove(containerInstance);
+    }
 }
 
 [HarmonyPatch(typeof(Container), nameof(Container.OnDestroyed))]
@@ -145,18 +157,33 @@ internal static class ContainerOnDestroyedPatch
         if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null || !__instance.m_nview.IsValid())
             return;
         Boxes.RemoveContainer(__instance);
+        ContainerAwakePatch.TryStopCoroutine(__instance);
+    }
+}
 
-        try
+[HarmonyPatch(typeof(WearNTear), nameof(WearNTear.OnDestroy))]
+static class WearNTearOnDestroyPatch
+{
+    static void Prefix(WearNTear __instance)
+    {
+        Container[]? container = __instance.GetComponentsInChildren<Container>();
+        Container[]? parentContainer = __instance.GetComponentsInParent<Container>();
+        if (container.Length > 0)
         {
-            if (__instance && ContainerAwakePatch.containerCoroutines.ContainsKey(__instance))
+            foreach (Container c in container)
             {
-                __instance.StopCoroutine(ContainerAwakePatch.containerCoroutines[__instance]);
-                ContainerAwakePatch.containerCoroutines.Remove(__instance);
+                ContainerAwakePatch.TryStopCoroutine(c);
+                Boxes.RemoveContainer(c);
             }
         }
-        catch (Exception exception)
+
+        if (parentContainer.Length <= 0) return;
         {
-            Functions.LogError($"Error in ContainerOnDestroyedPatch Couldn't remove container coroutine: {exception}");
+            foreach (Container c in parentContainer)
+            {
+                ContainerAwakePatch.TryStopCoroutine(c);
+                Boxes.RemoveContainer(c);
+            }
         }
     }
 }
@@ -211,6 +238,7 @@ public static class PlayerUpdateTeleportPatchCleanupContainers
                          : (container.GetInventory() != null ? 1 : 0)) == 0).Where(container => container != null))
         {
             Boxes.RemoveContainer(container);
+            ContainerAwakePatch.TryStopCoroutine(container);
         }
     }
 }

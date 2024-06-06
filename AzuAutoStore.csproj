@@ -161,7 +161,9 @@
         <Content Include="Libs\AzuExtendedPlayerInventoryAPI.dll">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <EmbeddedResource Include="Libs\BackpacksAPI.dll" />
+        <Content Include="Libs\BackpacksAPI.dll">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
         <Content Include="Libs\ServerSync.dll">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>

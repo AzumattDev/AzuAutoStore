@@ -150,6 +150,11 @@ public class kgDrawer(ItemDrawers_API.Drawer _drawer) : IContainer
     public GameObject gameObject => _drawer.gameObject;
 
     public bool IsOwner() => true;
+    
+    public Inventory GetInventory()
+    {
+        return null;
+    }
 
 
     public static kgDrawer Create(ItemDrawers_API.Drawer drawer) => new(drawer);

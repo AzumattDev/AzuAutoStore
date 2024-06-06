@@ -172,5 +172,9 @@ public class VanillaContainers(Container _container) : IContainer
     }
 
     public bool IsOwner() => _container.m_nview.IsOwner();
+    public Inventory GetInventory()
+    {
+        return _container.GetInventory();
+    }
     public static VanillaContainers Create(Container container) => new(container);
 }

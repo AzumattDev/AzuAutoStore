@@ -59,9 +59,10 @@ namespace AzuAutoStore
         {
             self = this;
 
-            _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On, new ConfigDescription("If on, the configuration is locked and can be changed by server admins only.", null, new ConfigurationManagerAttributes() { Order = 8 }));
+            _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On, new ConfigDescription("If on, the configuration is locked and can be changed by server admins only.", null, new ConfigurationManagerAttributes() { Order = 9 }));
             ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
 
+            ChestsPickupFromGround = config("1 - General", "Chests Pickup From Ground", Toggle.On, new ConfigDescription("If on, chests will pick up items from the ground if they are in range. If off, chests will not begin their periodic checks for items nearby.", null, new ConfigurationManagerAttributes() { Order = 8 }));
             MustHaveExistingItemToPull = config("1 - General", "Must Have Existing Item To Pull", Toggle.On, new ConfigDescription("If on, the chest must already have the item in its inventory to pull it from the world or player into the chest.", null, new ConfigurationManagerAttributes() { Order = 7 }));
             PlayerRange = config("1 - General", "Player Range", 5f, new ConfigDescription("The maximum distance from the player to store items in chests when the Store Shortcut is pressed. Follows storage rules for allowed items.", new AcceptableValueRange<float>(1f, 100f), new ConfigurationManagerAttributes() { Order = 6 }));
             FallbackRange = config("1 - General", "Fallback Range", 10f, new ConfigDescription("The range to use if the container has no range set in the yml file. This will be the fallback range for all containers.", null, new ConfigurationManagerAttributes() { Order = 5 }));
@@ -289,6 +290,7 @@ namespace AzuAutoStore
         #region ConfigOptions
 
         private static ConfigEntry<Toggle> _serverConfigLocked = null!;
+        internal static ConfigEntry<Toggle> ChestsPickupFromGround = null!;
         internal static ConfigEntry<Toggle> MustHaveExistingItemToPull = null!;
         internal static ConfigEntry<KeyboardShortcut> SingleItemShortcut = null!;
         private static ConfigEntry<KeyboardShortcut> _storeShortcut = null!;
