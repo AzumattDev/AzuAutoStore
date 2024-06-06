@@ -78,6 +78,9 @@
         <Reference Include="AzuExtendedPlayerInventory">
           <HintPath>Libs\AzuExtendedPlayerInventoryAPI.dll</HintPath>
         </Reference>
+        <Reference Include="Backpacks">
+          <HintPath>Libs\BackpacksAPI.dll</HintPath>
+        </Reference>
         <Reference Include="BepInEx">
             <HintPath>$(BepInExPath)\core\BepInEx.dll</HintPath>
         </Reference>
@@ -117,7 +120,12 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Patches\ChestPatches.cs"/>
+        <Compile Include="APIs\kg_ItemDrawersAPI.cs" />
+        <Compile Include="Interfaces\BackpackContainer.cs" />
+        <Compile Include="Interfaces\IContainer.cs" />
+        <Compile Include="Interfaces\kgDrawers.cs" />
+        <Compile Include="Interfaces\VanillaContainers.cs" />
+        <Compile Include="Patches\ChestPatches.cs" />
         <Compile Include="Patches\Commands.cs" />
         <Compile Include="Patches\Favoriting\BorderRenderer.cs" />
         <Compile Include="Patches\Favoriting\ButtonRenderer.cs" />
@@ -140,6 +148,7 @@
         <Compile Include="Util\Functions.cs" />
         <Compile Include="Util\GroupUtils.cs" />
         <Compile Include="Util\HighLightChest.cs" />
+        <Compile Include="Util\ItemDataManager.cs" />
         <Compile Include="Util\LocalizationManager.cs" />
         <Compile Include="Util\MiscFunctions.cs" />
         <Compile Include="Util\VersionHandshake.cs" />
@@ -152,6 +161,7 @@
         <Content Include="Libs\AzuExtendedPlayerInventoryAPI.dll">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <EmbeddedResource Include="Libs\BackpacksAPI.dll" />
         <Content Include="Libs\ServerSync.dll">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>

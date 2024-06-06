@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using AzuAutoStore.Interfaces;
 using AzuAutoStore.Patches.Favoriting;
 using AzuAutoStore.Util;
 using AzuAutoStore.Util.Compatibility.WardIsLove;
@@ -266,6 +267,6 @@ public static class Inventory_StackAll_Patch
 
     public static bool ShouldIncludeItem(ItemDrop.ItemData item)
     {
-        return !Functions.CantStoreFavorite(item, UserConfig.GetPlayerConfig(Player.m_localPlayer.GetPlayerID()));
+        return !VanillaContainers.CantStoreFavorite(item, UserConfig.GetPlayerConfig(Player.m_localPlayer.GetPlayerID()));
     }
 }

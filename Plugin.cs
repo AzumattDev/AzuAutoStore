@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using AzuAutoStore.Patches.Favoriting;
 using AzuAutoStore.Util;
 using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -21,19 +22,23 @@ namespace AzuAutoStore
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
     [BepInDependency("Azumatt.AzuExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(KgGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(BackpacksGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class AzuAutoStorePlugin : BaseUnityPlugin
     {
         internal const string ModName = "AzuAutoStore";
         internal const string ModVersion = "3.0.0";
         internal const string Author = "Azumatt";
         internal const string ModGUID = $"{Author}.{ModName}";
-        private static readonly string ConfigFileName = ModGUID + ".cfg";
+        internal const string KgGuid = "kg.ItemDrawers";
+        internal const string BackpacksGuid = "org.bepinex.plugins.backpacks";
+        private const string ConfigFileName = ModGUID + ".cfg";
         private static readonly string ConfigFileFullPath = Paths.ConfigPath + Path.DirectorySeparatorChar + ConfigFileName;
         internal static string ConnectionError = "";
         private readonly Harmony _harmony = new(ModGUID);
         public static readonly ManualLogSource AzuAutoStoreLogger = BepInEx.Logging.Logger.CreateLogSource(ModName);
         private static readonly ConfigSync ConfigSync = new(ModGUID) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
-
+        internal static bool BackpacksIsLoaded = false;
         internal static readonly string yamlFileName = $"{ModGUID}.yml";
         internal static readonly string yamlPath = Paths.ConfigPath + Path.DirectorySeparatorChar + yamlFileName;
         internal static readonly CustomSyncedValue<string> AzuAutoStoreContainerData = new(ConfigSync, "azuautostoreData", "");
@@ -110,6 +115,10 @@ namespace AzuAutoStore
         public void Start()
         {
             BorderRenderer.Border = loadSprite("border.png");
+            if (Chainloader.PluginInfos.ContainsKey(BackpacksGuid))
+            {
+                BackpacksIsLoaded = true;
+            }
         }
 
         private void AutoDoc()
