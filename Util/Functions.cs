@@ -50,7 +50,7 @@ public class Functions
         return AzuAutoStorePlugin.FallbackRange.Value;
     }
 
-    private static bool CantStoreFavorite(ItemDrop.ItemData item, UserConfig playerConfig)
+    internal static bool CantStoreFavorite(ItemDrop.ItemData item, UserConfig playerConfig)
     {
         return playerConfig.IsItemNameOrSlotFavorited(item);
     }

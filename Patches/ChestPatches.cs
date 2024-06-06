@@ -2,6 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
+using AzuAutoStore.Patches.Favoriting;
 using AzuAutoStore.Util;
 using AzuAutoStore.Util.Compatibility.WardIsLove;
 using HarmonyLib;
@@ -148,7 +151,6 @@ internal static class ContainerOnDestroyedPatch
             {
                 __instance.StopCoroutine(ContainerAwakePatch.containerCoroutines[__instance]);
                 ContainerAwakePatch.containerCoroutines.Remove(__instance);
-                
             }
         }
         catch (Exception exception)
@@ -209,5 +211,61 @@ public static class PlayerUpdateTeleportPatchCleanupContainers
         {
             Boxes.RemoveContainer(container);
         }
+    }
+}
+
+[HarmonyPatch(typeof(Inventory), nameof(Inventory.StackAll), typeof(Inventory), typeof(bool))]
+#if DEBUG
+[HarmonyEmitIL]
+#endif
+public static class Inventory_StackAll_Patch
+{
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        List<CodeInstruction> code = [..instructions];
+        MethodInfo? getAllItemsMethod = typeof(Inventory).GetMethod(nameof(Inventory.GetAllItems), BindingFlags.Instance | BindingFlags.Public, null, [], null);
+
+        int getAllItemsIndex = code.FindIndex(instr => instr.opcode == OpCodes.Callvirt && ReferenceEquals(instr.operand, getAllItemsMethod));
+
+        if (getAllItemsIndex == -1)
+        {
+            throw new System.Exception("Could not find GetAllItems call");
+        }
+
+        List<CodeInstruction> newInstructions =
+        [
+            // Call GetAllItems
+            new CodeInstruction(OpCodes.Callvirt, getAllItemsMethod),
+
+            // Store the result in a local variable (list of items)
+            new CodeInstruction(OpCodes.Stloc_3),
+
+            // Load the list of items onto the stack
+            new CodeInstruction(OpCodes.Ldloc_3),
+
+            // Create a new list with filtered items
+            new CodeInstruction(OpCodes.Call, typeof(Inventory_StackAll_Patch).GetMethod(nameof(FilterItems))),
+
+            // Store the filtered list back into the local variable
+            new CodeInstruction(OpCodes.Stloc_3),
+
+            // Load the filtered list for the next instructions
+            new CodeInstruction(OpCodes.Ldloc_3)
+        ];
+
+        // Replace the GetAllItems call with our new instructions
+        code.RemoveRange(getAllItemsIndex, 2); // Remove the original GetAllItems call and the newobj instruction
+        code.InsertRange(getAllItemsIndex, newInstructions);
+        return code.AsEnumerable();
+    }
+
+    public static List<ItemDrop.ItemData> FilterItems(List<ItemDrop.ItemData> items)
+    {
+        return items.Where(ShouldIncludeItem).ToList();
+    }
+
+    public static bool ShouldIncludeItem(ItemDrop.ItemData item)
+    {
+        return !Functions.CantStoreFavorite(item, UserConfig.GetPlayerConfig(Player.m_localPlayer.GetPlayerID()));
     }
 }
