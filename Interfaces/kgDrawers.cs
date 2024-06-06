@@ -135,11 +135,10 @@ public class kgDrawer(ItemDrawers_API.Drawer _drawer) : IContainer
             }
 
             LogDebug($"Checking item {item.m_dropPrefab.name}");
-            int stack = item.m_stack;
-            total += stack;
-            playerInventory?.RemoveItem(item);
-            _drawer.Add(stack);
-            LogDebug($"Stored {stack} {item.m_dropPrefab.name} into {_drawer.gameObject.name}");
+            if (!TryStoreToKG(_drawer, ref item, true, singleItemData != null)) continue;
+            total += item.m_stack;
+            inventory.RemoveItem(item);
+            LogDebug($"Stored {item.m_stack} {item.m_dropPrefab.name} into {_drawer.gameObject.name}");
             if (Boxes.ContainersToPing.Contains(this)) continue;
             Boxes.ContainersToPing.Add(this);
         }
@@ -147,15 +146,55 @@ public class kgDrawer(ItemDrawers_API.Drawer _drawer) : IContainer
         return total;
     }
 
+    internal bool TryStoreToKG(ItemDrawers_API.Drawer nearbyContainer, ref ItemDrop.ItemData item, bool fromPlayer = false, bool singleItemData = false)
+    {
+        bool changed = false;
+        LogDebug($"Checking container {_drawer.gameObject.name}");
+        if (!MiscFunctions.CheckItemSharedIntegrity(item)) return changed;
+        if (AzuAutoStorePlugin.MustHaveExistingItemToPull.Value == AzuAutoStorePlugin.Toggle.On && nearbyContainer.Prefab != item.m_dropPrefab.name)
+        {
+            if (singleItemData)
+            {
+                LogDebug($"Skipping {item.m_dropPrefab.name} because it is not in the container");
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, $"<color=red>{item.m_shared.m_name} is not in nearby containers</color>");
+            }
+
+            return false;
+        }
+
+        if (!Boxes.CanItemBeStored(MiscFunctions.GetPrefabName(_drawer.gameObject.name), item.m_dropPrefab.name)) return false;
+
+        LogDebug($"Auto storing {item.m_dropPrefab.name} in {_drawer.gameObject.name}");
+        while (item.m_stack > 1 && nearbyContainer.Prefab == item.m_dropPrefab.name)
+        {
+            changed = true;
+            item.m_stack--;
+            ItemDrop.ItemData newItem = item.Clone();
+            newItem.m_stack = 1;
+            _drawer.Add(newItem.m_stack);
+        }
+
+        if (item.m_stack == 1 && nearbyContainer.Prefab == item.m_dropPrefab.name)
+        {
+            ItemDrop.ItemData newItem = item.Clone();
+            item.m_stack = 0;
+            _drawer.Add(newItem.m_stack);
+            changed = true;
+        }
+
+        if (!changed) return changed;
+        if (!fromPlayer)
+        {
+            if (!Boxes.ContainersToPing.Contains(this))
+                Boxes.ContainersToPing.Add(this);
+        }
+
+        return changed;
+    }
+
     public GameObject gameObject => _drawer.gameObject;
 
     public bool IsOwner() => true;
-    
-    public Inventory GetInventory()
-    {
-        return null;
-    }
-
 
     public static kgDrawer Create(ItemDrawers_API.Drawer drawer) => new(drawer);
 }

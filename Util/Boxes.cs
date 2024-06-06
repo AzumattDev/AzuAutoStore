@@ -83,7 +83,7 @@ public class Boxes
             backpacksEnumerable = backpackList;
         }
 
-        List<IContainer> drawers = ItemDrawers_API.AllDrawers.Select(drawer => (IContainer)kgDrawer.Create(drawer)).ToList();
+        IEnumerable<IContainer> drawers = APIs.ItemDrawers_API.AllDrawersInRange(gameObject.transform.position, rangeToUse).Select(kgDrawer.Create);
         return nearbyContainers.Concat(drawers).Concat(backpacksEnumerable).ToList();
     }
 
