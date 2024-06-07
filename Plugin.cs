@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using AzuAutoStore.Patches.Favoriting;
 using AzuAutoStore.Util;
 using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -21,19 +22,23 @@ namespace AzuAutoStore
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
     [BepInDependency("Azumatt.AzuExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(KgGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(BackpacksGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public class AzuAutoStorePlugin : BaseUnityPlugin
     {
         internal const string ModName = "AzuAutoStore";
         internal const string ModVersion = "3.0.0";
         internal const string Author = "Azumatt";
         internal const string ModGUID = $"{Author}.{ModName}";
-        private static readonly string ConfigFileName = ModGUID + ".cfg";
+        internal const string KgGuid = "kg.ItemDrawers";
+        internal const string BackpacksGuid = "org.bepinex.plugins.backpacks";
+        private const string ConfigFileName = ModGUID + ".cfg";
         private static readonly string ConfigFileFullPath = Paths.ConfigPath + Path.DirectorySeparatorChar + ConfigFileName;
         internal static string ConnectionError = "";
         private readonly Harmony _harmony = new(ModGUID);
         public static readonly ManualLogSource AzuAutoStoreLogger = BepInEx.Logging.Logger.CreateLogSource(ModName);
         private static readonly ConfigSync ConfigSync = new(ModGUID) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
-
+        internal static bool BackpacksIsLoaded = false;
         internal static readonly string yamlFileName = $"{ModGUID}.yml";
         internal static readonly string yamlPath = Paths.ConfigPath + Path.DirectorySeparatorChar + yamlFileName;
         internal static readonly CustomSyncedValue<string> AzuAutoStoreContainerData = new(ConfigSync, "azuautostoreData", "");
@@ -54,9 +59,11 @@ namespace AzuAutoStore
         {
             self = this;
 
-            _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On, new ConfigDescription("If on, the configuration is locked and can be changed by server admins only.", null, new ConfigurationManagerAttributes() { Order = 8 }));
+            _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On, new ConfigDescription("If on, the configuration is locked and can be changed by server admins only.", null, new ConfigurationManagerAttributes() { Order = 10 }));
             ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
 
+            DontStoreToBackpacks = config("1 - General", "Dont Store to Backpacks", Toggle.Off, new ConfigDescription("If on, items will not be stored in backpacks.", null, new ConfigurationManagerAttributes() { Order = 9 }));
+            ChestsPickupFromGround = config("1 - General", "Chests Pickup From Ground", Toggle.On, new ConfigDescription("If on, chests will pick up items from the ground if they are in range. If off, chests will not begin their periodic checks for items nearby. Reloading zone or logging out might be required.", null, new ConfigurationManagerAttributes() { Order = 8 }));
             MustHaveExistingItemToPull = config("1 - General", "Must Have Existing Item To Pull", Toggle.On, new ConfigDescription("If on, the chest must already have the item in its inventory to pull it from the world or player into the chest.", null, new ConfigurationManagerAttributes() { Order = 7 }));
             PlayerRange = config("1 - General", "Player Range", 5f, new ConfigDescription("The maximum distance from the player to store items in chests when the Store Shortcut is pressed. Follows storage rules for allowed items.", new AcceptableValueRange<float>(1f, 100f), new ConfigurationManagerAttributes() { Order = 6 }));
             FallbackRange = config("1 - General", "Fallback Range", 10f, new ConfigDescription("The range to use if the container has no range set in the yml file. This will be the fallback range for all containers.", null, new ConfigurationManagerAttributes() { Order = 5 }));
@@ -110,6 +117,10 @@ namespace AzuAutoStore
         public void Start()
         {
             BorderRenderer.Border = loadSprite("border.png");
+            if (Chainloader.PluginInfos.ContainsKey(BackpacksGuid))
+            {
+                BackpacksIsLoaded = true;
+            }
         }
 
         private void AutoDoc()
@@ -280,6 +291,8 @@ namespace AzuAutoStore
         #region ConfigOptions
 
         private static ConfigEntry<Toggle> _serverConfigLocked = null!;
+        internal static ConfigEntry<Toggle> DontStoreToBackpacks = null!;
+        internal static ConfigEntry<Toggle> ChestsPickupFromGround = null!;
         internal static ConfigEntry<Toggle> MustHaveExistingItemToPull = null!;
         internal static ConfigEntry<KeyboardShortcut> SingleItemShortcut = null!;
         private static ConfigEntry<KeyboardShortcut> _storeShortcut = null!;
