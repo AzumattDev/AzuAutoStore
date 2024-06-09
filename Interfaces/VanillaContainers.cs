@@ -9,6 +9,7 @@ namespace AzuAutoStore.Interfaces;
 public class VanillaContainers(Container _container) : IContainer
 {
     public GameObject gameObject => _container.gameObject;
+    public ZNetView m_nview => _container.m_nview;
 
     public static bool CantStoreFavorite(ItemDrop.ItemData item, UserConfig playerConfig)
     {
@@ -172,9 +173,11 @@ public class VanillaContainers(Container _container) : IContainer
     }
 
     public bool IsOwner() => _container.m_nview.IsOwner();
+
     public Inventory GetInventory()
     {
         return _container.GetInventory();
     }
+
     public static VanillaContainers Create(Container container) => new(container);
 }

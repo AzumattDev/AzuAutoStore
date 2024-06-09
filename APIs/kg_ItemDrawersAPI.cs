@@ -26,14 +26,16 @@ public static class ItemDrawers_API
         public void Add(int amount) => znv.InvokeRPC("AddItem_Request", Prefab, amount);
         public Vector3 Position => znv.transform.position;
         public GameObject gameObject => znv.gameObject;
+        public string ZNVName => znv.gameObject.name;
+        public ZNetView m_nview => znv;
     }
 
     public static List<Drawer> AllDrawers => _IsInstalled
         ? ((List<ZNetView>)MI_GetAllDrawers.Invoke(null, null)).Select(znv => new Drawer(znv)).ToList()
         : new();
-    
-    public static List<Drawer> AllDrawersInRange(Vector3 pos, float range) => _IsInstalled ? 
-        ((List<ZNetView>)MI_GetAllDrawers.Invoke(null, null)).Where(znv => Vector3.Distance(znv.transform.position, pos) <= range).Select(znv => new Drawer(znv)).ToList() 
+
+    public static List<Drawer> AllDrawersInRange(Vector3 pos, float range) => _IsInstalled
+        ? ((List<ZNetView>)MI_GetAllDrawers.Invoke(null, null)).Where(znv => Vector3.Distance(znv.transform.position, pos) <= range).Select(znv => new Drawer(znv)).ToList()
         : new();
 
     static ItemDrawers_API()

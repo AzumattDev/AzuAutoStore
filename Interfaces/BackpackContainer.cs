@@ -223,5 +223,6 @@ public class BackpackContainer(ItemContainer _container) : IContainer
     }
 
     public GameObject gameObject => Player.m_localPlayer.gameObject;
+    public ZNetView m_nview => Player.m_localPlayer.m_nview;
     public static BackpackContainer Create(ItemContainer container) => new(container);
 }

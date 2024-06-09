@@ -142,7 +142,7 @@ public class Functions
 
             AzuAutoStorePlugin.self.StartCoroutine(End());
 
-            foreach (Container? nearbyContainer in uncheckedContainers)
+            foreach (IContainer? nearbyContainer in uncheckedContainers)
             {
                 // prevent claiming ownership of other players (e.g. through adventure backpacks)
                 Player? player = nearbyContainer?.m_nview.GetComponent<Player>();

@@ -193,6 +193,7 @@ public class kgDrawer(ItemDrawers_API.Drawer _drawer) : IContainer
     }
 
     public GameObject gameObject => _drawer.gameObject;
+    public ZNetView m_nview => _drawer.m_nview;
 
     public bool IsOwner() => true;
 
