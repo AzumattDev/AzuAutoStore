@@ -40,8 +40,7 @@ internal static class ContainerAwakePatch
         try
         {
             // Only add containers that the player should have access to
-            if (WardIsLovePlugin.IsLoaded() && WardIsLovePlugin.WardEnabled()!.Value &&
-                WardMonoscript.CheckAccess(__instance.transform.position, flash: false, wardCheck: true))
+            if (WardIsLovePlugin.IsLoaded() && WardIsLovePlugin.WardEnabled()!.Value && WardMonoscript.CheckAccess(__instance.transform.position, flash: false, wardCheck: true))
             {
                 Boxes.AddContainer(__instance);
             }
@@ -53,9 +52,11 @@ internal static class ContainerAwakePatch
         }
         catch
         {
+            // ignored
         }
 
         if (AzuAutoStorePlugin.ChestsPickupFromGround.Value == AzuAutoStorePlugin.Toggle.Off) return;
+        if (containerCoroutines.ContainsKey(__instance)) return;
         Coroutine newCoroutine = __instance.StartCoroutine(PeriodicCheck(__instance));
         containerCoroutines[__instance] = newCoroutine;
     }
@@ -94,33 +95,32 @@ internal static class ContainerAwakePatch
 
                 yield return new WaitForSeconds(currentInterval);
 
-                foreach (Collider? collider in Physics.OverlapSphere(containerInstance.transform.position, Functions.GetContainerRange(containerInstance), LayerMask.GetMask("item")))
-                    if (collider?.attachedRigidbody)
+                Collider[] colliders = Physics.OverlapSphere(containerInstance.transform.position, Functions.GetContainerRange(containerInstance), LayerMask.GetMask("item"));
+                foreach (Collider collider in colliders)
+                {
+                    ItemDrop item = collider?.attachedRigidbody?.GetComponent<ItemDrop>();
+                    if (item == null || !item.GetComponent<ZNetView>()?.IsValid() == true || !item.GetComponent<ZNetView>().IsOwner())
+                        continue;
+
+                    Functions.LogDebug($"Nearby item name: {item.m_itemData.m_dropPrefab.name}");
+                    if (!Functions.TryStore(containerInstance, ref item.m_itemData))
+                        continue;
+
+                    item.Save();
+                    if (item.m_itemData.m_stack <= 0)
                     {
-                        if (collider == null) continue;
-                        ItemDrop? item = collider.attachedRigidbody.GetComponent<ItemDrop>();
-                        if (!item) continue;
-                        Functions.LogDebug($"Nearby item name: {item.m_itemData.m_dropPrefab.name}");
-
-                        if (item?.GetComponent<ZNetView>()?.IsValid() != true ||
-                            !item.GetComponent<ZNetView>().IsOwner())
-                            continue;
-                        if (!Functions.TryStore(containerInstance, ref item.m_itemData)) continue;
-                        item.Save();
-                        if (item.m_itemData.m_stack <= 0)
-                        {
-                            if (item.GetComponent<ZNetView>() == null)
-                                Object.DestroyImmediate(item.gameObject);
-                            else
-                                ZNetScene.instance.Destroy(item.gameObject);
-                        }
+                        if (item.GetComponent<ZNetView>() == null)
+                            Object.DestroyImmediate(item.gameObject);
+                        else
+                            ZNetScene.instance.Destroy(item.gameObject);
                     }
-
+                }
 
                 currentInterval = regularSearchInterval;
             }
         }
     }
+
 
     public static void ItemDroppedNearby(Container containerInstance)
     {
@@ -195,12 +195,10 @@ static class ContainerInteractPatch
     static void Postfix(Container __instance, Humanoid character, bool hold, bool alt)
     {
         long playerId = Game.instance.GetPlayerProfile().GetPlayerID();
-        if ((__instance.m_checkGuardStone && !PrivateArea.CheckAccess(__instance.transform.position)) ||
-            !__instance.CheckAccess(playerId))
+        if ((__instance.m_checkGuardStone && !PrivateArea.CheckAccess(__instance.transform.position)) || !__instance.CheckAccess(playerId))
             return;
         // Only add containers that the player should have access to
-        if (WardIsLovePlugin.IsLoaded() && WardIsLovePlugin.WardEnabled()!.Value &&
-            WardMonoscript.CheckAccess(__instance.transform.position, flash: false, wardCheck: true))
+        if (WardIsLovePlugin.IsLoaded() && WardIsLovePlugin.WardEnabled()!.Value && WardMonoscript.CheckAccess(__instance.transform.position, flash: false, wardCheck: true))
         {
             Boxes.AddContainer(__instance);
         }

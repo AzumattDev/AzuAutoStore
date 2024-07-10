@@ -70,11 +70,7 @@ static class TerminalInitTerminalPatch
                 {
                     List<Piece> pieces = new();
 
-                    GetAllPiecesInRadius(
-                        Player.m_localPlayer.transform.position,
-                        SearchRadius,
-                        pieces
-                    );
+                    GetAllPiecesInRadius(Player.m_localPlayer.transform.position, SearchRadius, pieces);
                     IEnumerable<IContainer> drawersCheck = APIs.ItemDrawers_API.AllDrawers.Where(x => string.Equals(x.Prefab, query, StringComparison.CurrentCultureIgnoreCase)).Select(kgDrawer.Create);
                     return pieces
                         .Where(p => p.GetComponent<Container>())
@@ -97,9 +93,6 @@ static class TerminalInitTerminalPatch
                     return Utils.GetPrefabName(itemData.m_dropPrefab).ToLower();
                 }
             },
-            optionsFetcher: () =>
-                !(bool)(Object)ZNetScene.instance
-                    ? new List<string>()
-                    : ZNetScene.instance.GetPrefabNames());
+            optionsFetcher: () => !ZNetScene.instance ? new List<string>() : ZNetScene.instance.GetPrefabNames());
     }
 }

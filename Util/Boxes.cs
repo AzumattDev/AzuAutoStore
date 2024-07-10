@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using AzuAutoStore.APIs;
 using AzuAutoStore.Interfaces;
+using AzuAutoStore.Patches;
 using Backpacks;
 using ItemDataManager;
 
@@ -41,12 +42,9 @@ public class Boxes
 
     internal static void UpdateContainers()
     {
-        foreach (Container container in ContainersToAdd)
-        {
-            Containers.Add(container);
-        }
-
+        Containers.AddRange(ContainersToAdd);
         ContainersToAdd.Clear();
+
         foreach (Container container in ContainersToRemove)
         {
             Containers.Remove(container);
@@ -279,7 +277,7 @@ public class Boxes
             return;
         if (container.m_nview.IsOwner())
         {
-            container.m_nview.GetZDO().Set("storingPaused".GetStableHashCode(), pause);
+            container.m_nview.GetZDO().Set(ContainerAwakePatch.storingPausedHash, pause);
         }
     }
 }

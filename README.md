@@ -345,6 +345,16 @@ groups:
 ## The values are set up to include everything by using the includeOverride (aside from things that aren't really a part of vanilla recipes, like Swords or Bows). 
 ## This is to give you examples on how it's done, but still allow everything to be stored into the container.
 
+Player_tombstone: # This is to exclude the tombstone from randomly picking up items that fall near it.
+  range: 10
+  exclude:
+    - All
+
+Player: # This is to exclude backpacks from randomly storing items into them.
+  range: 10
+  exclude:
+    - All
+
 piece_chest:
   range: 10 # This is the range that the container will store items. This overrides the global range set in the config.
   exclude: # Exclude these items from being able to be stored into the container

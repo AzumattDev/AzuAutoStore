@@ -56,6 +56,7 @@ public class Functions
         bool changed = false;
         LogDebug($"Checking container {nearbyContainer.name}");
         if (!MiscFunctions.CheckItemSharedIntegrity(item)) return changed;
+
         if (AzuAutoStorePlugin.MustHaveExistingItemToPull.Value == AzuAutoStorePlugin.Toggle.On && !nearbyContainer.GetInventory().HaveItem(item.m_shared.m_name))
         {
             if (singleItemData)
@@ -68,6 +69,18 @@ public class Functions
         }
 
         if (!Boxes.CanItemBeStored(MiscFunctions.GetPrefabName(nearbyContainer.transform.root.name), item.m_dropPrefab.name)) return false;
+
+        if (!nearbyContainer.m_nview.IsOwner())
+        {
+            LogDebug($"Cannot store items in {nearbyContainer.name} because the player is not the owner.");
+            return false;
+        }
+
+        if (!nearbyContainer.CheckAccess(Game.instance.GetPlayerProfile().GetPlayerID()))
+        {
+            LogDebug($"Cannot store items in {nearbyContainer.name} because the player does not have access.");
+            return false;
+        }
 
         LogDebug($"Auto storing {item.m_dropPrefab.name} in {nearbyContainer.name}");
         while (item.m_stack > 1 && nearbyContainer.GetInventory().CanAddItem(item, 1))

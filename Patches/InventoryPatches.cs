@@ -96,6 +96,22 @@ static class InventoryAddItemPatch
         Functions.PingContainer(targetContainer);
         return true;
     }
+
+private static bool AddItemToContainer(ItemDrop.ItemData item, Container targetContainer)
+{
+    if (!targetContainer.GetInventory().CanAddItem(item))
+        return false;
+
+    targetContainer.GetInventory().AddItem(item);
+    targetContainer.Save();
+    targetContainer.GetInventory().Changed();
+    if (!InventoryGui.instance.m_currentContainer.Equals(targetContainer))
+        MessageHud.instance.QueueUnlockMsg(item.GetIcon(), item.m_shared.m_name, $"Redirected to {targetContainer.GetHoverName()}");
+
+    Functions.PingContainer(targetContainer);
+    return true;
+}
+
 }
 #endif
 [HarmonyPatch(typeof(Player), nameof(Player.UpdateTeleport))]

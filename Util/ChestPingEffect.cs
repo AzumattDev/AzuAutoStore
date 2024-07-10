@@ -4,11 +4,13 @@ namespace AzuAutoStore.Util;
 
 public class ChestPingEffect : MonoBehaviour
 {
+    GameObject pingObject;
+
     private void Awake()
     {
         if (!string.IsNullOrWhiteSpace(AzuAutoStorePlugin.PingVfxString.Value))
         {
-            Object.Instantiate(ZNetScene.instance.GetPrefab(AzuAutoStorePlugin.PingVfxString.Value), transform.position, Quaternion.identity);
+            pingObject = Object.Instantiate(ZNetScene.instance.GetPrefab(AzuAutoStorePlugin.PingVfxString.Value), transform.position, Quaternion.identity);
             Trigger();
         }
     }
@@ -17,6 +19,8 @@ public class ChestPingEffect : MonoBehaviour
 
     public void DestroyNow()
     {
+        if (pingObject != null)
+            ZNetScene.instance.Destroy(pingObject);
         DestroyImmediate(this);
     }
 }
