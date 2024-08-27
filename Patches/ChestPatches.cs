@@ -34,7 +34,7 @@ internal static class ContainerAwakePatch
             __instance.m_nview.Register<bool>("Autostore OpenResponse", (_, response) => Boxes.RPC_OpenResponse(__instance, response));
         }
 
-        if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null || !__instance.m_nview.IsValid())
+        if (__instance.m_nview.GetZDO().GetLong(ZDOVars.s_creator) == 0L || __instance.GetInventory() == null || !__instance.m_nview.IsValid())
             return;
 
         try
@@ -154,7 +154,7 @@ internal static class ContainerOnDestroyedPatch
 {
     private static void Postfix(Container __instance)
     {
-        if (__instance.name.StartsWith("Treasure") || __instance.GetInventory() == null || !__instance.m_nview.IsValid())
+        if (__instance.m_nview.GetZDO().GetLong("creator".GetStableHashCode()) == 0L || __instance.GetInventory() == null || !__instance.m_nview.IsValid())
             return;
         Boxes.RemoveContainer(__instance);
         ContainerAwakePatch.TryStopCoroutine(__instance);

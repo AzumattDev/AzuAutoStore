@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using AzuAutoStore.Interfaces;
@@ -239,6 +240,23 @@ public class Functions
             foreach (IContainer c in Boxes.ContainersToPing)
             {
                 PingContainer(c.gameObject);
+                // Reset ownership of the container if you are the current owner and it's not the current container you have open.
+                try
+                {
+                    if (c.IsOwner() && InventoryGui.instance && c != InventoryGui.instance.m_currentContainer)
+                    {
+                        c.m_nview.GetZDO().Set(ZDOVars.s_inUse, 0, false);
+                        // Set it for client as well if the c can be cast to Container
+                        if (c is VanillaContainers container)
+                        {
+                            container.gameObject.GetComponent<Container>().SetInUse(false);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    AzuAutoStorePlugin.AzuAutoStoreLogger.LogError($"Error while trying to reset ownership of container {c.gameObject.name}: {e}");
+                }
             }
 
             Boxes.ContainersToPing.Clear();
