@@ -181,32 +181,27 @@ public class MiscFunctions
                                 : "Seeds");
                         }
 
-                        if (ZNetScene.instance.GetPrefab("smelter").GetComponent<Smelter>().m_conversion
-                            .Any(c => c.m_from.m_itemData.m_shared.m_name == sharedData.m_name))
+                        if (ZNetScene.instance.GetPrefab("smelter").GetComponent<Smelter>().m_conversion.Any(c => c.m_from.m_itemData.m_shared.m_name == sharedData.m_name))
                         {
                             groupNames.Add("Ores");
                         }
 
-                        if (ZNetScene.instance.GetPrefab("smelter").GetComponent<Smelter>().m_conversion
-                            .Any(c => c.m_to.m_itemData.m_shared.m_name == sharedData.m_name))
+                        if (ZNetScene.instance.GetPrefab("smelter").GetComponent<Smelter>().m_conversion.Any(c => c.m_to.m_itemData.m_shared.m_name == sharedData.m_name))
                         {
                             groupNames.Add("Metals");
                         }
 
-                        if (ZNetScene.instance.GetPrefab("blastfurnace").GetComponent<Smelter>().m_conversion
-                            .Any(c => c.m_from.m_itemData.m_shared.m_name == sharedData.m_name))
+                        if (ZNetScene.instance.GetPrefab("blastfurnace").GetComponent<Smelter>().m_conversion.Any(c => c.m_from.m_itemData.m_shared.m_name == sharedData.m_name))
                         {
                             groupNames.Add("Ores");
                         }
 
-                        if (ZNetScene.instance.GetPrefab("blastfurnace").GetComponent<Smelter>().m_conversion
-                            .Any(c => c.m_to.m_itemData.m_shared.m_name == sharedData.m_name))
+                        if (ZNetScene.instance.GetPrefab("blastfurnace").GetComponent<Smelter>().m_conversion.Any(c => c.m_to.m_itemData.m_shared.m_name == sharedData.m_name))
                         {
                             groupNames.Add("Metals");
                         }
 
-                        if (ZNetScene.instance.GetPrefab("charcoal_kiln").GetComponent<Smelter>().m_conversion
-                            .Any(c => c.m_from.m_itemData.m_shared.m_name == sharedData.m_name))
+                        if (ZNetScene.instance.GetPrefab("charcoal_kiln").GetComponent<Smelter>().m_conversion.Any(c => c.m_from.m_itemData.m_shared.m_name == sharedData.m_name))
                         {
                             groupNames.Add("Woods");
                         }
@@ -223,7 +218,9 @@ public class MiscFunctions
                 {
                     if (!string.IsNullOrEmpty(groupName))
                     {
+                        #if DEBUG
                         AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"(CreatePredefinedGroups) Adding {itemDrop.m_itemData.m_dropPrefab.name} to {groupName}");
+                        #endif
                         AddItemToGroup(groupName, itemDrop);
                     }
                 }

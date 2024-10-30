@@ -176,7 +176,7 @@ public class Functions
     internal static void TryStoreThisItem(ItemDrop.ItemData itemData, Inventory m_inventory)
     {
         if (Player.m_localPlayer == null) return;
-        LogDebug($"Trying to store {itemData.m_shared.m_name} from player inventory");
+        LogDebug($"Trying to store {itemData.m_shared.m_name}");
         // Check all items in the player inventory where the items are not equipped
 
         IContainer?[] uncheckedContainers = Boxes.GetNearbyContainers(Player.m_localPlayer, AzuAutoStorePlugin.PlayerRange.Value).ToArray();
@@ -214,14 +214,16 @@ public class Functions
 
             AzuAutoStorePlugin.self.StartCoroutine(End());
 
-            foreach (Container? nearbyContainer in uncheckedContainers)
+            foreach (IContainer? nearbyContainer in uncheckedContainers)
             {
-                // prevent claiming ownership of other players (e.g. through adventure backpacks)
-                Player? player = nearbyContainer?.m_nview.GetComponent<Player>();
-
-                if (!player || player == Player.m_localPlayer)
+                if (nearbyContainer is VanillaContainers vanillaContainers)
                 {
-                    nearbyContainer?.m_nview.InvokeRPC("Autostore Ownership");
+                    Player? player = nearbyContainer?.m_nview.GetComponent<Player>(); 
+                    // prevent claiming ownership of other players (e.g. through adventure backpacks)
+                    if (!player || player == Player.m_localPlayer)
+                    {
+                        vanillaContainers?.m_nview.InvokeRPC("Autostore Ownership");
+                    }
                 }
             }
         }

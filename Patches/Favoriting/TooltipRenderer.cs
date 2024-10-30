@@ -13,7 +13,8 @@ namespace AzuAutoStore.Patches.Favoriting
             typeof(ItemDrop.ItemData),
             typeof(int),
             typeof(bool),
-            typeof(float)
+            typeof(float),
+            typeof(int)
         })]
         [HarmonyPostfix]
         public static void GetTooltip(ItemDrop.ItemData item, bool crafting, ref string __result)
@@ -22,7 +23,6 @@ namespace AzuAutoStore.Patches.Favoriting
             {
                 return;
             }
-
             StringBuilder stringBuilder = new StringBuilder(256);
             stringBuilder.Append(__result);
 

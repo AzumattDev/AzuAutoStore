@@ -24,6 +24,7 @@ static class InventoryGridGetHoveredElementPatch
         {
             ItemDrop.ItemData? item = __instance.m_inventory.GetItemAt(element.m_pos.x, element.m_pos.y);
             if (item == null) return;
+            if (__instance.m_inventory == null) return;
             Functions.TryStoreThisItem(item, __instance.m_inventory);
         }
     }
