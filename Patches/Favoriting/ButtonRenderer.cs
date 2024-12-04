@@ -1,6 +1,4 @@
 ﻿using System.Collections;
-using TMPro;
-using UnityEngine;
 using UnityEngine.UI;
 
 namespace AzuAutoStore.Patches.Favoriting

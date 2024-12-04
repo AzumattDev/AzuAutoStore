@@ -5,7 +5,6 @@ using AzuAutoStore.Interfaces;
 using AzuAutoStore.Util;
 using HarmonyLib;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace AzuAutoStore;
 
@@ -68,7 +67,7 @@ static class TerminalInitTerminalPatch
 
                 IEnumerable<IContainer> GetNearbyMatchingPieces(string query)
                 {
-                    List<Piece> pieces = new();
+                    List<Piece> pieces = [];
 
                     GetAllPiecesInRadius(Player.m_localPlayer.transform.position, SearchRadius, pieces);
                     IEnumerable<IContainer> drawersCheck = APIs.ItemDrawers_API.AllDrawers.Where(x => string.Equals(x.Prefab, query, StringComparison.CurrentCultureIgnoreCase)).Select(kgDrawer.Create);
@@ -93,6 +92,6 @@ static class TerminalInitTerminalPatch
                     return Utils.GetPrefabName(itemData.m_dropPrefab).ToLower();
                 }
             },
-            optionsFetcher: () => !ZNetScene.instance ? new List<string>() : ZNetScene.instance.GetPrefabNames());
+            optionsFetcher: () => !ZNetScene.instance ? [] : ZNetScene.instance.GetPrefabNames());
     }
 }

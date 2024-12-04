@@ -23,7 +23,7 @@ public class GroupUtils
             }
         }
 
-        return new List<string>();
+        return [];
     }
 
     public static bool IsGroupDefined(string? groupName)
@@ -74,7 +74,7 @@ public class GroupUtils
             return groupPrefabs.ToList();
         }
 
-        return new List<string?>();
+        return [];
     }
 
     /*public static bool IsItemInGroup(string itemName, string groupName)

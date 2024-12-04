@@ -28,16 +28,14 @@ namespace AzuAutoStore
         {
             if (!__instance.IsServer() || RpcHandlers.ValidatedPeers.Contains(rpc)) return true;
             // Disconnect peer if they didn't send mod version at all
-            AzuAutoStorePlugin.AzuAutoStoreLogger.LogWarning(
-                $"Peer ({rpc.m_socket.GetHostName()}) never sent version or couldn't due to previous disconnect, disconnecting");
+            AzuAutoStorePlugin.AzuAutoStoreLogger.LogWarning($"Peer ({rpc.m_socket.GetHostName()}) never sent version or couldn't due to previous disconnect, disconnecting");
             rpc.Invoke("Error", 3);
             return false; // Prevent calling underlying method
         }
 
         private static void Postfix(ZNet __instance)
         {
-            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.instance.GetServerPeerID(), $"{AzuAutoStorePlugin.ModName}RequestAdminSync",
-                new ZPackage());
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.instance.GetServerPeerID(), $"{AzuAutoStorePlugin.ModName}RequestAdminSync", new ZPackage());
         }
     }
 
@@ -69,7 +67,7 @@ namespace AzuAutoStore
 
     public static class RpcHandlers
     {
-        public static readonly List<ZRpc> ValidatedPeers = new();
+        public static readonly List<ZRpc> ValidatedPeers = [];
 
         public static void RPC_AzuAutoStore_Version(ZRpc rpc, ZPackage pkg)
         {

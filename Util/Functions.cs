@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using AzuAutoStore.Interfaces;
-using AzuAutoStore.Patches.Favoriting;
+using AzuAutoStore.Patches;
 using BepInEx.Configuration;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -17,6 +17,12 @@ public class Functions
         GUILayout.ExpandHeight(true);
         GUILayout.ExpandWidth(true);
         entry.BoxedValue = GUILayout.TextArea((string)entry.BoxedValue, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+    }
+
+
+    public static void LogContainerStatus(Container container)
+    {
+        LogIfBuildDebug($"Container {container.name} at {container.transform.position} is {(container.m_nview.IsOwner() ? "owned" : "not owned")} and has {(container.GetInventory()?.NrOfItems() ?? 0)} items.");
     }
 
     internal static float GetContainerRange(Container container)
@@ -52,24 +58,89 @@ public class Functions
         return AzuAutoStorePlugin.FallbackRange.Value;
     }
 
+    internal static void CheckItemDropInstanceAndStore(ItemDrop itemDrop)
+    {
+        if (Boxes.Containers == null || itemDrop == null || itemDrop.transform == null)
+        {
+            return;
+        }
+
+        if (AzuAutoStorePlugin.ChestsPickupFromGround.Value == AzuAutoStorePlugin.Toggle.Off) return;
+        if (itemDrop.m_nview == null || !itemDrop.m_nview.IsValid()) return;
+        for (int index = 0; index < Boxes.Containers.Count; ++index)
+        {
+            Container? container = Boxes.Containers[index];
+            if (container == null || container.transform == null || container.GetInventory() == null)
+            {
+                continue;
+            }
+
+            float distance = Vector3.Distance(container.transform.position, itemDrop.transform.position);
+            if (distance > Functions.GetContainerRange(container)) continue;
+            // Check if storing is paused for this container
+            bool isPaused = container.m_nview.GetZDO().GetBool(ContainerAwakePatch.storingPausedHash, false);
+            if (isPaused)
+                continue;
+            if (!itemDrop.CanPickup(false))
+            {
+                itemDrop.RequestOwn();
+            }
+            else if (!itemDrop.m_nview!.HasOwner())
+            {
+                if (itemDrop.m_nview.m_zdo != null)
+                {
+                    try
+                    {
+                        itemDrop.m_nview.ClaimOwnership();
+                    }
+                    catch
+                    {
+                        // Not happy about this, but whatever. Fix later.
+                    }
+                }
+            }
+
+            Functions.LogDebug($"Nearby item name: {itemDrop.m_itemData.m_dropPrefab.name}");
+            if (!Functions.TryStore(container, ref itemDrop.m_itemData))
+                continue;
+            itemDrop.Save();
+            if (itemDrop.m_itemData.m_stack <= 0)
+            {
+                if (itemDrop.m_nview == null)
+                    Object.DestroyImmediate(itemDrop.gameObject);
+                else
+                    ZNetScene.instance.Destroy(itemDrop.gameObject);
+            }
+        }
+    }
+
     internal static bool TryStore(Container nearbyContainer, ref ItemDrop.ItemData item, bool fromPlayer = false, bool singleItemData = false)
     {
         bool changed = false;
-        LogDebug($"Checking container {nearbyContainer.name}");
+        LogIfBuildDebug($"Checking container {nearbyContainer.name}");
         if (!MiscFunctions.CheckItemSharedIntegrity(item)) return changed;
-
+        LogIfBuildDebug($"{item.m_dropPrefab.name}, Passed item integrity check");
         if (AzuAutoStorePlugin.MustHaveExistingItemToPull.Value == AzuAutoStorePlugin.Toggle.On && !nearbyContainer.GetInventory().HaveItem(item.m_shared.m_name))
         {
             if (singleItemData)
             {
                 LogDebug($"Skipping {item.m_dropPrefab.name} because it is not in the container");
-                Player.m_localPlayer.Message(MessageHud.MessageType.Center, $"<color=red>{item.m_shared.m_name} is not in nearby containers</color>");
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, $"<color=red>{item.m_shared.m_name} [{item.m_dropPrefab.name}] is not in nearby containers</color>");
             }
 
             return false;
         }
 
-        if (!Boxes.CanItemBeStored(MiscFunctions.GetPrefabName(nearbyContainer.transform.root.name), item.m_dropPrefab.name)) return false;
+        if (!Boxes.CanItemBeStored(MiscFunctions.GetPrefabName(nearbyContainer.transform.root.name), item.m_dropPrefab.name))
+        {
+            if (singleItemData)
+            {
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, $"<color=red>{item.m_shared.m_name} [{item.m_dropPrefab.name}] cannot be stored based on configuration settings</color>");
+            }
+
+            LogDebug($"{item.m_shared.m_name} cannot be stored based on configuration setting");
+            return false;
+        }
 
         if (!nearbyContainer.m_nview.IsOwner())
         {
@@ -83,13 +154,13 @@ public class Functions
             return false;
         }
 
-        LogDebug($"Auto storing {item.m_dropPrefab.name} in {nearbyContainer.name}");
         while (item.m_stack > 1 && nearbyContainer.GetInventory().CanAddItem(item, 1))
         {
             changed = true;
             item.m_stack--;
             ItemDrop.ItemData newItem = item.Clone();
             newItem.m_stack = 1;
+            LogDebug($"Auto storing {item.m_dropPrefab.name} in {nearbyContainer.name}");
             nearbyContainer.GetInventory().AddItem(newItem);
         }
 
@@ -97,6 +168,7 @@ public class Functions
         {
             ItemDrop.ItemData newItem = item.Clone();
             item.m_stack = 0;
+            LogDebug($"Auto storing {item.m_dropPrefab.name} in {nearbyContainer.name}");
             nearbyContainer.GetInventory().AddItem(newItem);
             changed = true;
         }
@@ -218,7 +290,7 @@ public class Functions
             {
                 if (nearbyContainer is VanillaContainers vanillaContainers)
                 {
-                    Player? player = nearbyContainer?.m_nview.GetComponent<Player>(); 
+                    Player? player = nearbyContainer?.m_nview.GetComponent<Player>();
                     // prevent claiming ownership of other players (e.g. through adventure backpacks)
                     if (!player || player == Player.m_localPlayer)
                     {
@@ -280,6 +352,13 @@ public class Functions
     internal static void LogDebug(string data)
     {
         AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug(data);
+    }
+
+    internal static void LogIfBuildDebug(string data)
+    {
+#if DEBUG
+        AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug(data);
+#endif
     }
 
     internal static void LogError(string data)

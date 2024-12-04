@@ -15,7 +15,7 @@ public class MiscFunctions
 
     public static string GetPrefabName(string name)
     {
-        char[] anyOf = new char[2] { '(', ' ' };
+        char[] anyOf = ['(', ' '];
         int length = name.IndexOfAny(anyOf);
         return length < 0 ? name : name.Substring(0, length);
     }
@@ -49,7 +49,7 @@ public class MiscFunctions
             if (drop != null)
             {
                 ItemDrop.ItemData.SharedData sharedData = itemDrop.m_itemData.m_shared;
-                List<string?> groupNames = new();
+                List<string?> groupNames = [];
 
                 if (sharedData.m_food > 0.0 && sharedData.m_foodStamina > 0.0)
                 {
@@ -128,19 +128,19 @@ public class MiscFunctions
                         groupNames.Add(sharedData.m_timedBlockBonus > 0.0 ? "Round Shield" : "Tower Shield");
                         break;
                     case ItemDrop.ItemData.ItemType.Helmet:
-                        groupNames.AddRange(new[] { "Armor", "Helmet" });
+                        groupNames.AddRange(["Armor", "Helmet"]);
                         break;
                     case ItemDrop.ItemData.ItemType.Chest:
-                        groupNames.AddRange(new[] { "Armor", "Chest" });
+                        groupNames.AddRange(["Armor", "Chest"]);
                         break;
                     case ItemDrop.ItemData.ItemType.Legs:
-                        groupNames.AddRange(new[] { "Armor", "Legs" });
+                        groupNames.AddRange(["Armor", "Legs"]);
                         break;
                     case ItemDrop.ItemData.ItemType.Shoulder:
-                        groupNames.AddRange(new[] { "Armor", "Shoulder" });
+                        groupNames.AddRange(["Armor", "Shoulder"]);
                         break;
                     case ItemDrop.ItemData.ItemType.Utility:
-                        groupNames.AddRange(new[] { "Utility" });
+                        groupNames.AddRange(["Utility"]);
                         break;
                     case ItemDrop.ItemData.ItemType.Ammo:
                         string ammoType = sharedData.m_ammoType;
@@ -163,7 +163,7 @@ public class MiscFunctions
                         groupNames.Add("Equipment");
                         break;
                     case ItemDrop.ItemData.ItemType.Trophy:
-                        string[] bossTrophies = { "eikthyr", "elder", "bonemass", "dragonqueen", "goblinking", "SeekerQueen" };
+                        string[] bossTrophies = ["eikthyr", "elder", "bonemass", "dragonqueen", "goblinking", "SeekerQueen"];
                         groupNames.Add(bossTrophies.Any(sharedData.m_name.EndsWith) ? "Boss Trophy" : "Trophy");
                         break;
                     case ItemDrop.ItemData.ItemType.Material:
@@ -243,7 +243,7 @@ public class MiscFunctions
         // Check if the group exists, and if not, create it
         if (!GroupUtils.GroupExists(groupName))
         {
-            AzuAutoStorePlugin.groups[groupName] = new HashSet<string?>();
+            AzuAutoStorePlugin.groups[groupName] = [];
         }
 
         // Add the item to the group

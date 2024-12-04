@@ -8,14 +8,13 @@ namespace AzuAutoStore.Patches.Favoriting
     [HarmonyPatch(typeof(ItemDrop.ItemData))]
     internal static class TooltipRenderer
     {
-        [HarmonyPatch(nameof(ItemDrop.ItemData.GetTooltip), new Type[]
-        {
+        [HarmonyPatch(nameof(ItemDrop.ItemData.GetTooltip), [
             typeof(ItemDrop.ItemData),
             typeof(int),
             typeof(bool),
             typeof(float),
             typeof(int)
-        })]
+        ])]
         [HarmonyPostfix]
         public static void GetTooltip(ItemDrop.ItemData item, bool crafting, ref string __result)
         {

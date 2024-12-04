@@ -38,7 +38,7 @@ public static class YamlUtils
                     // Safely cast to the expected List type
                     if (group.Value is List<object> prefabs)
                     {
-                        HashSet<string?> prefabNames = new();
+                        HashSet<string?> prefabNames = [];
 
                         foreach (object prefab in prefabs)
                         {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AzuAutoStore.Util.Compatibility;
+namespace AzuAutoStore.APIs.Compatibility;
 
 public class WILCompat
 {

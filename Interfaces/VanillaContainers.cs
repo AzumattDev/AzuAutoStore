@@ -84,7 +84,7 @@ public class VanillaContainers(Container _container) : IContainer
         Inventory? inventory = playerInventory ?? Player.m_localPlayer.GetInventory();
         int total = 0;
         List<ItemDrop.ItemData>? items = singleItemData == null ? inventory.GetAllItems() : [singleItemData];
-        for (int j = items.Count - 1; j >= 0; j--)
+        for (int j = items.Count - 1; j >= 0; --j)
         {
             ItemDrop.ItemData? item = items[j];
             if (item.m_equipped)

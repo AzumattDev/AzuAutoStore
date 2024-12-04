@@ -45,8 +45,8 @@ namespace AzuAutoStore.Patches.Favoriting
         {
             AzuAutoStorePlugin.AzuAutoStoreLogger.LogWarning("Resetting all favoriting data!");
 
-            _favoritedSlots = new HashSet<Vector2i>();
-            _favoritedItems = new HashSet<string>();
+            _favoritedSlots = [];
+            _favoritedItems = [];
 
             Save();
         }
@@ -94,10 +94,10 @@ namespace AzuAutoStore.Patches.Favoriting
             using Stream stream = File.Open(_configPath, FileMode.OpenOrCreate);
             stream.Seek(0L, SeekOrigin.Begin);
 
-            _favoritedSlots = new HashSet<Vector2i>();
-            _favoritedItems = new HashSet<string>();
+            _favoritedSlots = [];
+            _favoritedItems = [];
 
-            List<Tuple<int, int>>? deserializedFavoritedSlots = new List<Tuple<int, int>>();
+            List<Tuple<int, int>>? deserializedFavoritedSlots = [];
             LoadProperty(stream, out deserializedFavoritedSlots);
 
             if (deserializedFavoritedSlots != null)
@@ -106,7 +106,7 @@ namespace AzuAutoStore.Patches.Favoriting
                     _favoritedSlots.Add(new Vector2i(item.Item1, item.Item2));
                 }
 
-            List<string>? deserializedFavoritedItems = new List<string>();
+            List<string>? deserializedFavoritedItems = [];
             LoadProperty(stream, out deserializedFavoritedItems);
 
             if (deserializedFavoritedItems != null)

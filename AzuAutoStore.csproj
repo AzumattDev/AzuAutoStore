@@ -120,11 +120,17 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="APIs\Compatibility\WardIsLove\WardIsLovePlugin.cs" />
+        <Compile Include="APIs\Compatibility\WardIsLove\WardMonoscript.cs" />
+        <Compile Include="APIs\Compatibility\WILCompat.cs" />
         <Compile Include="APIs\kg_ItemDrawersAPI.cs" />
         <Compile Include="Interfaces\BackpackContainer.cs" />
         <Compile Include="Interfaces\IContainer.cs" />
         <Compile Include="Interfaces\kgDrawers.cs" />
         <Compile Include="Interfaces\VanillaContainers.cs" />
+        <Compile Include="Managers\AzuAutoStoreItemDropManager.cs" />
+        <Compile Include="Managers\ItemDataManager.cs" />
+        <Compile Include="Managers\LocalizationManager.cs" />
         <Compile Include="Patches\ChestPatches.cs" />
         <Compile Include="Patches\Commands.cs" />
         <Compile Include="Patches\Favoriting\BorderRenderer.cs" />
@@ -135,21 +141,15 @@
         <Compile Include="Patches\Favoriting\TooltipRenderer.cs" />
         <Compile Include="Patches\Favoriting\UserConfig.cs" />
         <Compile Include="Patches\InventoryPatches.cs" />
-        <Compile Include="Patches\ItemDropPatches.cs" />
         <Compile Include="Patches\PredefinedGroups.cs" />
         <Compile Include="Plugin.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Util\Boxes.cs" />
         <Compile Include="Util\ChestPingEffect.cs" />
-        <Compile Include="Util\Compatibility\WardIsLove\WardIsLovePlugin.cs" />
-        <Compile Include="Util\Compatibility\WardIsLove\WardMonoscript.cs" />
-        <Compile Include="Util\Compatibility\WILCompat.cs" />
         <Compile Include="Util\ForTheYams.cs" />
         <Compile Include="Util\Functions.cs" />
         <Compile Include="Util\GroupUtils.cs" />
         <Compile Include="Util\HighLightChest.cs" />
-        <Compile Include="Util\ItemDataManager.cs" />
-        <Compile Include="Util\LocalizationManager.cs" />
         <Compile Include="Util\MiscFunctions.cs" />
         <Compile Include="Util\VersionHandshake.cs" />
     </ItemGroup>
