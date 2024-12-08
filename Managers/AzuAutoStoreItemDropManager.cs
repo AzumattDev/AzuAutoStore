@@ -32,10 +32,15 @@ public class AzuAutoStoreItemDropManager : MonoBehaviour
 
     private void ProcessItemDrops()
     {
+        if (ShouldPause())
+        {
+            return;
+        }
+
         if (Boxes.Containers == null || Boxes.Containers.Count == 0)
             return;
 
-        foreach (ItemDrop itemDrop in ItemDrop.s_instances.ToList())
+        foreach (ItemDrop itemDrop in ItemDrop.s_instances.Where(x => !x.IsPiece()).ToList())
         {
             if (itemDrop == null || itemDrop.transform == null || itemDrop.m_nview == null || !itemDrop.m_nview.IsValid())
                 continue;
@@ -48,5 +53,11 @@ public class AzuAutoStoreItemDropManager : MonoBehaviour
     {
         CancelInvoke(nameof(ProcessItemDrops));
         InvokeRepeating(nameof(ProcessItemDrops), AzuAutoStorePlugin.IntervalSeconds.Value, AzuAutoStorePlugin.IntervalSeconds.Value);
+    }
+
+    private static bool ShouldPause()
+    {
+        Player? player = Player.m_localPlayer;
+        return player == null || player.IsTeleporting() || player.IsDead();
     }
 }

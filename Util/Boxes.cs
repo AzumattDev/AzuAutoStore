@@ -33,7 +33,8 @@ public class Boxes
         if (Containers.Contains(container))
         {
             ContainersToRemove.Add(container);
-            AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Removed container {container.name} from list");
+            if (container)
+                AzuAutoStorePlugin.AzuAutoStoreLogger.LogDebug($"Removed container {container.name} from list");
         }
 
         UpdateContainers();

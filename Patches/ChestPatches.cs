@@ -135,7 +135,7 @@ public static class PlayerUpdateTeleportPatchCleanupContainers
 {
     public static void Prefix(float dt)
     {
-        if (!(Player.m_localPlayer != null) || !Player.m_localPlayer.m_teleporting)
+        if (Player.m_localPlayer == null || !Player.m_localPlayer.m_teleporting)
             return;
         foreach (Container? container in Boxes.Containers.ToList().Where(container => container == null || container.transform == null || container.GetInventory() == null))
         {

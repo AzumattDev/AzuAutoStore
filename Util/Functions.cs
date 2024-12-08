@@ -100,6 +100,7 @@ public class Functions
                 }
             }
 
+            if (!itemDrop.m_nview.IsOwner()) continue;
             Functions.LogDebug($"Nearby item name: {itemDrop.m_itemData.m_dropPrefab.name}");
             if (!Functions.TryStore(container, ref itemDrop.m_itemData))
                 continue;
