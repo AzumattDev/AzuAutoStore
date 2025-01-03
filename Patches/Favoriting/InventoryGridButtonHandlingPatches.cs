@@ -33,7 +33,7 @@ namespace AzuAutoStore.Patches.Favoriting
 
                 var info = typeof(InventoryGridButtonHandlingPatches).GetMethod(nameof(GetButtonDownWithConfig));
 
-                for (int i = 0; i < list.Count; i++)
+                for (int i = 0; i < list.Count; ++i)
                 {
                     if (list[i].opcode == OpCodes.Call && list[i].operand.ToString().ToLower().Contains("getbuttondown"))
                     {

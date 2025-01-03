@@ -16,7 +16,7 @@ static class InventoryGridGetHoveredElementPatch
         if (element == null) return;
 
 
-        if (AzuAutoStorePlugin.SingleItemShortcut.Value.IsDown())
+        if (AzuAutoStorePlugin.SingleItemShortcut.Value.IsKeyDown())
         {
             ItemDrop.ItemData? item = __instance.m_inventory.GetItemAt(element.m_pos.x, element.m_pos.y);
             if (item == null) return;

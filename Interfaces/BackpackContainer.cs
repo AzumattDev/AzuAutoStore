@@ -25,7 +25,7 @@ public class BackpackContainer(ItemContainer _container) : IContainer
 
         int total = 0;
         List<ItemDrop.ItemData>? items = Player.m_localPlayer.GetInventory().GetAllItems();
-        for (int j = items.Count - 1; j >= 0; j--)
+        for (int j = items.Count - 1; j >= 0; --j)
         {
             ItemDrop.ItemData? item = items[j];
             if (item.m_equipped)
@@ -81,8 +81,18 @@ public class BackpackContainer(ItemContainer _container) : IContainer
         if (Player.m_localPlayer == null) return 0;
         Inventory? inventory = playerInventory ?? Player.m_localPlayer.GetInventory();
         int total = 0;
-        List<ItemDrop.ItemData>? items = singleItemData == null ? inventory.GetAllItems() : [singleItemData];
-        for (int j = items.Count - 1; j >= 0; j--)
+        //List<ItemDrop.ItemData>? items = singleItemData == null ? inventory.GetAllItems() : [singleItemData];
+        List<ItemDrop.ItemData>? items = singleItemData == null ? null : [singleItemData];
+        if (items == null)
+        {
+            return 0;
+        }
+
+        if (items.Count == 0)
+        {
+            return 0;
+        }
+        for (int j = items.Count - 1; j >= 0; --j)
         {
             ItemDrop.ItemData? item = items[j];
             if (item.m_equipped)
