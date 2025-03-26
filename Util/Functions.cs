@@ -67,6 +67,14 @@ public class Functions
 
         if (AzuAutoStorePlugin.ChestsPickupFromGround.Value == AzuAutoStorePlugin.Toggle.Off) return;
         if (itemDrop.m_nview == null || !itemDrop.m_nview.IsValid()) return;
+        // Check if the itemdrop is a Fish and if it's not out of water before trying to store it.
+        if (itemDrop.m_itemData.m_dropPrefab == null) return;
+        if (itemDrop.m_itemData.m_dropPrefab.TryGetComponent<Fish>(out var fish))
+        {
+            if (!fish.IsOutOfWater())
+                return;
+        }
+
         for (int index = 0; index < Boxes.Containers.Count; ++index)
         {
             Container? container = Boxes.Containers[index];
@@ -249,6 +257,11 @@ public class Functions
     internal static void TryStoreThisItem(ItemDrop.ItemData itemData, Inventory m_inventory)
     {
         if (Player.m_localPlayer == null) return;
+        if (m_inventory != Player.m_localPlayer.GetInventory())
+        {
+            return;
+        }
+
         LogDebug($"Trying to store {itemData.m_shared.m_name}");
         // Check all items in the player inventory where the items are not equipped
 
